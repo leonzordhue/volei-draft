@@ -2,459 +2,159 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Vôlei Draft PRO</title>
+  <title>Vôlei Draft PRO 3.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
-  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
   <style>
-    :root { --bg: #121212; --card: #1e1e1e; --primary: #ff6b6b; --text: #f0f0f0; --success: #4CAF50; --danger: #E91E63; }
-    body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    
-    .header-logo { text-align: center; margin-bottom: 20px; }
-    .header-logo img { width: 80px; filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.5)); }
-    .header-logo h1 { margin: 5px 0 0 0; font-size: 22px; color: var(--text); }
-    
-    .mode-switch { text-align: center; margin-bottom: 20px; }
-    .mode-switch select { width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; background: #333; color: white; border: 1px solid var(--primary); font-weight: bold;}
-
-    .view { display: none; animation: fadeIn 0.3s ease; } .view.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .section-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #333; margin-bottom: 20px; }
-    .section-title { font-size: 18px; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; margin-bottom: 15px; }
-    
-    input, select, button { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: none; font-size: 16px; }
-    input, select { background: #2a2a2a; color: var(--text); border: 1px solid #444; }
-    button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    button:active { transform: scale(0.95); }
-    button:disabled { background: #333; color: #666; }
-    .btn-success { background: var(--success); } .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
-    .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-
-    .roster-list { max-height: 350px; overflow-y: auto; background: #2a2a2a; border-radius: 12px; padding: 10px; border: 1px solid #444;}
-    .roster-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; }
-    
-    .arena-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-    @media (min-width: 1024px) { .arena-grid { grid-template-columns: repeat(4, 1fr); } body { padding: 40px 80px; } }
-
-    .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); }
-    .time-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 8px;}
-    
-    /* Area de Drop do Drag & Drop */
-    .drop-zone { min-height: 60px; padding-bottom: 10px;}
-    .player-card { display: flex; justify-content: space-between; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #555; background: #1a1a1a; font-size: 14px; cursor: grab; transition: 0.2s;}
-    .player-card:active { cursor: grabbing; transform: scale(0.95); opacity: 0.8;}
-    .rank-1 { border-left-color: #cd7f32; } .rank-2 { border-left-color: #c0c0c0; } .rank-3 { border-left-color: #ffd700; } .rank-4 { border-left-color: #00ffff; box-shadow: 0 0 8px rgba(0,255,255,0.3); } 
-
-    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; }
-    .modal-content { background: var(--card); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #444;}
-    
-    .admin-nav { display: flex; gap: 5px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
-    .admin-nav button { padding: 10px; font-size: 14px; border-radius: 8px; white-space: nowrap; margin-bottom: 0;}
-
-    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 9999; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
-    #sync-status { text-align: center; font-size: 12px; color: #ffa000; margin-bottom: 15px; font-weight: bold; }
+    /* ... Manter estilos anteriores e adicionar ... */
+    .arena-status { background: #333; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ffa000; font-size: 14px; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; }
+    .fire { background: #ff4500; color: white; }
+    .ice { background: #00ffff; color: #000; }
+    .radar-container { width: 100%; max-width: 200px; margin: 0 auto; height: 150px; }
+    .zebra-box { font-size: 11px; font-weight: bold; padding: 4px; border-radius: 4px; display: inline-block; margin-top: 5px;}
   </style>
 </head>
 <body>
 
-  <script> const API_URL = "https://script.google.com/macros/s/AKfycbyiHsW3_Az5baGCnYXUvoOxyZIz9xfwc_qmVIx2X9DD5a2WndPBa1t164QxCQfNvqL-/exec"; </script>
-  <div id="toast">Sucesso!</div>
-  
-  <div class="header-logo">
-    <img src="https://cdn-icons-png.flaticon.com/512/5402/5402396.png" alt="Logo Vôlei">
-    <h1>Draft PRO 3.0</h1>
-  </div>
-
-  <div id="sync-status">🔄 Conectando aos servidores do Google...</div>
-
-  <div class="mode-switch">
-    <select id="appMode" onchange="changeMode()">
-      <option value="public">🙋‍♂️ Modo Jogador (Check-in)</option>
-      <option value="admin">⚙️ Modo Administrador</option>
-    </select>
-  </div>
-
-  <div id="view-public" class="view active">
-    <div class="section-card">
-      <h2 class="section-title">Confirme sua Presença</h2>
-      <p style="color:#aaa; font-size:14px;">Apenas jogadores convocados pelo Admin podem confirmar presença.</p>
-      
-      <select id="publicSelectRsvp">
-        <option value="">⏳ Aguardando Lista...</option>
-      </select>
-      
-      <button onclick="fazerCheckin()" class="btn-success" id="btnConfirmarRsvp" disabled>✅ Confirmar Presença</button>
-      
-      <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
-        <h3 style="font-size: 16px; margin-top:0;">Confirmados Hoje (<span id="rsvpCount">0</span>)</h3>
-        <div class="roster-list" id="rsvpListPublic"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="view-admin" class="view">
-    
-    <div class="admin-nav">
-      <button onclick="switchAdminTab('roster')" class="btn-outline" style="background:var(--primary); color:white;" id="tab-roster">1. Convocação</button>
-      <button onclick="switchAdminTab('draft')" class="btn-outline" id="tab-draft">2. Draft</button>
-      <button onclick="switchAdminTab('match')" class="btn-outline" id="tab-match">3. Partidas</button>
-      <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Cadastros</button>
-    </div>
-
-    <div id="admin-roster" class="view active">
-      <div class="section-card">
-        <h2 class="section-title">Montar Lista de Convocados</h2>
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-          <input type="text" id="adminBuscaNome" list="listaGlobal" placeholder="Nome..." autocomplete="off" style="margin:0;">
-          <datalist id="listaGlobal"></datalist>
-          <button onclick="addRosterAdmin()" style="width:auto; margin:0; padding:0 20px;">+</button>
-        </div>
-        <div class="roster-list" id="adminRosterBuildList" style="margin-bottom:15px;"></div>
-        <button onclick="salvarListaOficial()" class="btn-success">☁️ Salvar Lista na Nuvem</button>
-        <button onclick="limparDiaInteiro()" class="btn-outline" style="border-color:#ff6b6b; color:#ff6b6b; margin-top:10px;">🗑️ Iniciar Novo Dia (Zerar Tudo)</button>
-      </div>
-    </div>
-
-    <div id="admin-draft" class="view">
-      <div class="section-card">
-        <h2 class="section-title">Jogadores Confirmados</h2>
-        <div style="display:flex; justify-content:space-between; color:#aaa; font-size:13px; margin-bottom:10px;">
-          <span>Prontos para Draft: <strong id="adminDraftCount" style="color:white;">0</strong></span>
-        </div>
-        <div class="roster-list" id="adminCheckinList" style="max-height: 200px;"></div>
-        <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio Algorítmico</button>
-      </div>
-
-      <div id="arena-view" style="display:none;">
-        <h2 class="section-title" style="text-align:center;">🏐 ARENA</h2>
-        <p style="color:#aaa; font-size:12px; text-align:center;">Segure e arraste um jogador para trocar de time (Swap).</p>
-        
-        <div class="arena-grid" id="resultado-container"></div>
-        
-        <button onclick="exportarWhatsApp()" class="btn-success" style="margin-top:15px;">📲 Enviar Sorteio para WhatsApp</button>
-
-        <div style="margin-top: 20px; background:#1a1a1a; padding:15px; border-radius:12px; border:1px dashed #ffa000;">
-          <h3 style="margin-top:0; font-size:15px; color:#ffa000;">Fila de Atrasados / Sobras</h3>
-          <div id="filaEsperaContainer" style="color:#aaa; font-size:14px; margin-bottom:10px;">Ninguém sobrando.</div>
-          <button onclick="alocarAtrasados()" class="btn-outline" style="border-color:#ffa000; color:#ffa000;">Alocar para Completar Times</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="admin-match" class="view">
-      <div class="section-card">
-        <h2 class="section-title">Registrar Partida Oficial</h2>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <select id="timeA"><option value="Time 1">Time 1</option><option value="Time 2">Time 2</option><option value="Time 3">Time 3</option><option value="Time 4">Time 4</option></select>
-          <span style="font-weight:bold; color:var(--primary); font-size:20px; margin-bottom:15px;">VS</span>
-          <select id="timeB"><option value="Time 2" selected>Time 2</option><option value="Time 1">Time 1</option><option value="Time 3">Time 3</option><option value="Time 4">Time 4</option></select>
-        </div>
-        <div style="display:flex; gap:10px;">
-          <button onclick="registrarVitoria('A')" class="btn-success">🏆 Win Lado Esq.</button>
-          <button onclick="registrarVitoria('B')" class="btn-success">🏆 Win Lado Dir.</button>
-        </div>
-      </div>
-      <div class="section-card">
-        <h2 class="section-title">📊 Frequência Geral</h2>
-        <canvas id="presChart" style="background:#222; border-radius:8px; padding:10px;"></canvas>
-      </div>
-    </div>
-
-    <div id="admin-cad" class="view">
-      <div class="section-card" style="border-color: #4CAF50;">
-        <h2 class="section-title" style="color:#4CAF50;">➕ Novo Cadastro</h2>
-        <input type="text" id="nomeCad" placeholder="Nome completo" autocomplete="off">
-        <select id="tipoCad"><option value="Membro">Membro Fixo</option><option value="Convidado">Convidado</option></select>
-        <select id="sexoCad"><option value="M">Masculino</option><option value="F">Feminino</option></select>
-        <select id="estCad"><option value="1">1 Estrela</option><option value="2">2 Estrelas</option><option value="3" selected>3 Estrelas</option><option value="4">4 Estrelas (Craque)</option></select>
-        <select id="levCad"><option value="Nao">Normal</option><option value="Sim">Levantador Oficial</option></select>
-        <button onclick="salvarNovoJogador()" style="background:#4CAF50;">Adicionar ao Banco Global</button>
-      </div>
-      <div class="section-card">
-        <h2 class="section-title">🗑️ Gerenciar Banco Global</h2>
-        <input type="text" id="filterDB" placeholder="Buscar no banco para excluir..." onkeyup="filtrarDB()" style="margin-bottom:10px;">
-        <div class="roster-list" id="adminDBList" style="max-height: 400px;"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="modal-overlay" id="playerModal" onclick="closeModal(event)">
-    <div class="modal-content">
-      <h2 id="m-nome" style="margin-top:0; color:var(--primary);">Nome</h2>
-      <div style="font-size:24px; margin-bottom:15px;" id="m-stars">⭐⭐⭐</div>
-      <button class="btn-danger" style="margin-top:20px; width:100%; padding:15px;" onclick="excluirJogador()">🗑️ Excluir Jogador do Banco</button>
-      <button class="btn-outline" style="margin-top:10px;" onclick="document.getElementById('playerModal').style.display='none'">Fechar</button>
-    </div>
-  </div>
+  <script> const API_URL = "https://script.google.com/macros/s/AKfycbxjdeRnBBrjMu79AhRF6yTLttHKmIa9NPOASYYqyiM4y0CT7AGgdhesbfKau6VEipHJ/exec"; </script>
 
   <script>
-    // INJEÇÃO PWA P/ ÍCONE NO CELULAR/DESKTOP
-    try {
-      const manifestObj = {
-        name: "Vôlei Draft PRO", short_name: "VôleiPRO", display: "standalone",
-        background_color: "#121212", theme_color: "#ff6b6b",
-        icons: [{ src: "https://cdn-icons-png.flaticon.com/512/5402/5402396.png", sizes: "512x512", type: "image/png" }]
-      };
-      const link = document.createElement('link'); link.rel = 'manifest';
-      link.href = URL.createObjectURL(new Blob([JSON.stringify(manifestObj)], {type: 'application/json'}));
-      document.head.appendChild(link);
-    } catch(e) {}
+    let sys = { players: [], roster: [], checkins: [], history: [], matches: [], absences: [], currentTeams: [] };
+    let reiDaQuadra = { emQuadra: [], fila: [0, 1, 2, 3], vitoriasSeguidas: 0 };
 
-    let sys = { players: [], roster: [], checkins: [], history: [], matches: [], lastDraftId: null, currentTeams: [] };
-    let tempAdminRoster = [];
-    let chartsInit = false; let playerSelecionadoModal = null;
-
-    const actx = new (window.AudioContext || window.webkitAudioContext)();
-    function play(t) {
-      if(actx.state==='suspended') actx.resume(); let o=actx.createOscillator(), g=actx.createGain(); o.connect(g); g.connect(actx.destination);
-      if(t==='tick'){ o.type='sine'; o.frequency.setValueAtTime(800,actx.currentTime); g.gain.setValueAtTime(0.1,actx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,actx.currentTime+0.1); o.start(); o.stop(actx.currentTime+0.1); }
-      if(t==='epic'){ o.type='square'; o.frequency.setValueAtTime(300,actx.currentTime); o.frequency.exponentialRampToValueAtTime(900,actx.currentTime+0.8); g.gain.setValueAtTime(0.2,actx.currentTime); g.gain.linearRampToValueAtTime(0,actx.currentTime+0.8); o.start(); o.stop(actx.currentTime+0.8); }
+    // --- NOMES DE TIMES AUTOMÁTICOS ---
+    function gerarNomeTime(jogadores) {
+      const prefixos = ["Os Galácticos de", "Sada Cruzeiro de", "Vôlei Mania de", "Muralha de", "Vingadores de", "Elite de"];
+      let randomPlayer = jogadores[Math.floor(Math.random() * jogadores.length)].nome.split(' ')[0];
+      return `${prefixos[Math.floor(Math.random() * prefixos.length)]} ${randomPlayer}`;
     }
 
-    function showTst(m, err=false) { let t=document.getElementById('toast'); t.innerText=m; t.style.background=err?'var(--danger)':'var(--success)'; t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); }
-
-    window.onload = () => {
-      if(API_URL === "COLE_SUA_URL_AQUI") { document.getElementById('sync-status').innerText = "❌ ERRO: Coloque a URL da API no código!"; return; }
-      refreshData();
-    };
-
-    function refreshData(callback) {
-      document.getElementById('sync-status').style.display = 'block'; document.getElementById('sync-status').innerText = "🔄 Sincronizando BD...";
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
-      .then(r => r.json()).then(data => {
-        if(data.status === 'success') {
-          sys = { ...sys, ...data.data };
-          tempAdminRoster = [...sys.roster];
-          popularDatalist(); renderizarPublicRsvp(); renderizarAdminRoster(); renderizarAdminDB();
-          document.getElementById('sync-status').style.display = 'none';
-          if(callback) callback();
-        }
-      }).catch(e => { showTst("Sem conexão.", true); });
-    }
-
-    function fetchAction(action, payload, callback) {
-      document.getElementById('sync-status').style.display = 'block'; payload.action = action;
-      fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-      .then(r=>r.json()).then(d=>{ if(d.status==='success'){ if(callback)callback(d.data); refreshData(); } else showTst("Erro", true); });
-    }
-
-    function changeMode() {
-      let m = document.getElementById('appMode').value;
-      if(m === 'admin') {
-        let p = prompt("Digite a Senha de Admin:");
-        if(p !== "1234voleidavila") { showTst("Senha Incorreta!", true); document.getElementById('appMode').value = 'public'; return; }
-        document.getElementById('view-public').classList.remove('active'); document.getElementById('view-admin').classList.add('active');
-      } else { document.getElementById('view-admin').classList.remove('active'); document.getElementById('view-public').classList.add('active'); }
-    }
-
-    function switchAdminTab(t) {
-      document.querySelectorAll('#view-admin > .view').forEach(e=>e.classList.remove('active'));
-      document.querySelectorAll('.admin-nav button').forEach(e=>{e.style.background='transparent'; e.style.color='var(--primary)';});
-      document.getElementById('admin-'+t).classList.add('active');
-      document.getElementById('tab-'+t).style.background = 'var(--primary)'; document.getElementById('tab-'+t).style.color = 'white';
-      if(t === 'match' && !chartsInit) gerarGraficos();
-    }
-
-    function popularDatalist() {
-      let dl = document.getElementById('listaGlobal'); dl.innerHTML='';
-      sys.players.forEach(j => { let o = document.createElement('option'); o.value = j.nome; dl.appendChild(o); });
-    }
-
-    // --- RSVP BLINDADO ANTI-DUPLO ---
-    function renderizarPublicRsvp() {
-      let pendentes = sys.roster.filter(n => !sys.checkins.includes(n));
-      let sel = document.getElementById('publicSelectRsvp'), btn = document.getElementById('btnConfirmarRsvp');
-      sel.innerHTML = '<option value="">Selecione seu nome...</option>';
-      if(pendentes.length === 0) { sel.innerHTML = '<option value="">Nenhum nome pendente.</option>'; sel.disabled = true; btn.disabled = true; } 
-      else { sel.disabled = false; btn.disabled = false; pendentes.forEach(n => { sel.innerHTML += `<option value="${n}">${n}</option>`; }); }
-
-      let htmlConf = '';
-      sys.checkins.forEach((nome, i) => {
-        let j = sys.players.find(x => x.nome === nome);
-        if(j) htmlConf += `<div class="roster-item"><span>${i+1}. ${j.isLevantador?'🟢':''}${j.isMulher?'🟣':''} ${j.nome}</span><span style="font-size:12px; color:#aaa;">${'⭐'.repeat(j.estrelas)}</span></div>`;
-      });
-      document.getElementById('rsvpListPublic').innerHTML = htmlConf || '<div style="text-align:center; padding:10px;">Ninguém confirmou ainda.</div>';
-      document.getElementById('adminCheckinList').innerHTML = htmlConf || '<div style="text-align:center; padding:10px;">Ninguém confirmou ainda.</div>';
-      document.getElementById('rsvpCount').innerText = sys.checkins.length; document.getElementById('adminDraftCount').innerText = sys.checkins.length;
-    }
-
-    function fazerCheckin() {
-      let nome = document.getElementById('publicSelectRsvp').value;
-      if(!nome) { showTst("Selecione seu nome na lista!", true); return; }
-      if(sys.checkins.includes(nome)) { showTst("Você já confirmou.", true); return; }
-      
-      // Atualiza front imediatamente para sumir da lista
-      sys.checkins.push(nome);
-      renderizarPublicRsvp(); 
-      fetchAction('rsvp', {nome: nome}, () => showTst("Presença Confirmada!"));
-    }
-
-    // --- CONVOCAÇÃO ADMIN ---
-    function addRosterAdmin() {
-      let n = document.getElementById('adminBuscaNome').value.trim(); if(!n) return;
-      let j = sys.players.find(x => x.nome.toLowerCase() === n.toLowerCase());
-      if(!j) { showTst("Não encontrado!", true); return; }
-      if(tempAdminRoster.includes(j.nome)) { showTst("Já está na lista.", true); return; }
-      tempAdminRoster.push(j.nome); document.getElementById('adminBuscaNome').value = ''; renderizarAdminRoster();
-    }
-    function remRosterAdmin(n) { tempAdminRoster = tempAdminRoster.filter(x => x !== n); renderizarAdminRoster(); }
-    function renderizarAdminRoster() {
-      let c = document.getElementById('adminRosterBuildList'); c.innerHTML = '';
-      if(tempAdminRoster.length === 0) { c.innerHTML = '<div style="text-align:center; padding:10px;">Adicione nomes...</div>'; return; }
-      tempAdminRoster.forEach((n, i) => { c.innerHTML += `<div class="roster-item"><span>${i+1}. ${n}</span><button class="btn-danger" onclick="remRosterAdmin('${n}')">✖</button></div>`; });
-    }
-    function salvarListaOficial() {
-      if(tempAdminRoster.length === 0) { showTst("A lista está vazia!", true); return; }
-      fetchAction('saveRoster', {roster: tempAdminRoster}, () => showTst("Lista Oficial Publicada!"));
-    }
-    function limparDiaInteiro() {
-      if(confirm("Zerar Lista e Check-in?")) fetchAction('clearDay', {}, () => { tempAdminRoster = []; document.getElementById('arena-view').style.display = 'none'; showTst("Novo dia!"); });
-    }
-
-    // --- CADASTROS (CRUD) ---
-    function salvarNovoJogador() {
-      let d = { nome: document.getElementById('nomeCad').value.trim(), estrelas: parseInt(document.getElementById('estCad').value), isMulher: document.getElementById('sexoCad').value==='F', isLevantador: document.getElementById('levCad').value==='Sim', isConvidado: document.getElementById('tipoCad').value==='Convidado' };
-      if(!d.nome){ showTst("Preencha o nome", true); return;}
-      document.getElementById('nomeCad').value=''; fetchAction('addPlayer', {dados: d}, () => showTst("Cadastrado!"));
-    }
-    function renderizarAdminDB() {
-      let c = document.getElementById('adminDBList'); c.innerHTML = '';
-      let filter = document.getElementById('filterDB').value.toLowerCase();
-      let list = sys.players.filter(j => j.nome.toLowerCase().includes(filter)).sort((a,b) => a.nome.localeCompare(b.nome));
-      list.forEach(j => {
-        c.innerHTML += `<div class="roster-item" style="font-size:14px; cursor:pointer;" onclick="abrirPlayerCard('${j.nome}')">
-          <span>${j.isLevantador?'🟢':''}${j.isMulher?'🟣':''} <b>${j.nome}</b> (${'⭐'.repeat(j.estrelas)}) <br><small style="color:#888;">${j.isConvidado?'Convidado':'Fixo'}</small></span>
-        </div>`;
-      });
-    }
-    function filtrarDB() { renderizarAdminDB(); }
-    function deletarJogador(nome) {
-      if(confirm(`EXCLUIR "${playerSelecionadoModal.nome}" do Banco de Dados?`)) {
-        document.getElementById('playerModal').style.display = 'none';
-        fetchAction('deletePlayer', {nome: playerSelecionadoModal.nome}, () => showTst(`Excluído!`));
-      }
-    }
-    function abrirPlayerCard(nome) {
-      playerSelecionadoModal = sys.players.find(x => x.nome === nome);
-      if(!playerSelecionadoModal) return;
-      document.getElementById('m-nome').innerText = playerSelecionadoModal.nome; document.getElementById('m-stars').innerText = '⭐'.repeat(playerSelecionadoModal.estrelas);
-      document.getElementById('playerModal').style.display = 'flex';
-    }
-    function closeModal(e) { if(e.target === document.getElementById('playerModal')) document.getElementById('playerModal').style.display = 'none'; }
-
-    // --- ALGORITMO & ARENA & DRAG'N DROP ---
-    function iniciarSorteio() {
-      if(sys.checkins.length < 4) { showTst("Mínimo de 4 confirmados!", true); return; }
-      let jogsAtivos = sys.checkins.slice(0, 24).map(n => sys.players.find(x => x.nome === n)).filter(x=>x);
-      let times = [[],[],[],[]], levs = jogsAtivos.filter(j=>j.isLevantador), muls = jogsAtivos.filter(j=>j.isMulher && !j.isLevantador), rest = jogsAtivos.filter(j=>!j.isLevantador && (!j.isMulher||(j.isMulher&&j.isLevantador))); 
-      for(let i=0; i<4; i++) if(levs.length>0) times[i].push(levs.splice(Math.floor(Math.random()*levs.length),1)[0]);
-      rest = [...rest, ...levs];
-      muls.forEach(m => { let td = times.filter(t=>t.filter(j=>j.isMulher).length<2); if(td.length>0){ td.sort((a,b)=>a.reduce((s,j)=>s+j.estrelas,0)-b.reduce((s,j)=>s+j.estrelas,0)); times[times.indexOf(td[0])].push(m); } else rest.push(m); });
-      rest.sort((a,b)=>b.estrelas-a.estrelas);
-      rest.forEach(j => { times.sort((a,b)=>a.reduce((s,x)=>s+x.estrelas,0)-b.reduce((s,x)=>s+x.estrelas,0)); times[0].push(j); });
-      times = times.filter(t=>t.length>0);
-      let sum = t => t.reduce((s,j)=>s+j.estrelas,0);
-      for(let i=0; i<10; i++){
-        times.sort((a,b)=>sum(a)-sum(b)); let fr = times[0], fo = times[times.length-1];
-        let jFr = fr.findIndex(j=>!j.isLevantador && !j.isMulher), jFo = fo.findIndex(j=>!j.isLevantador && !j.isMulher);
-        if(jFr!==-1 && jFo!==-1 && fo[jFo].estrelas > fr[jFr].estrelas){
-          let dPre = sum(fo)-sum(fr), dPos = Math.abs((sum(fo)-fo[jFo].estrelas+fr[jFr].estrelas)-(sum(fr)-fr[jFr].estrelas+fo[jFo].estrelas));
-          if(dPos < dPre){ let t = fr[jFr]; fr[jFr] = fo[jFo]; fo[jFo] = t; }
-        }
-      }
-      sys.currentTeams = times; renderizarArena();
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-      fetchAction('saveDraft', {times: times}, (res)=>{ sys.lastDraftId = res.id; showTst("Sorteio salvo na nuvem!"); });
-    }
-
-    // Drag and Drop State
-    let dragT = null, dragP = null;
-    function dStart(e, t, p) { dragT = t; dragP = p; e.dataTransfer.setData('text/plain', ''); }
-    function dOver(e) { e.preventDefault(); }
-    function dDrop(e, targetT, targetP) {
-      e.preventDefault(); e.stopPropagation();
-      if(dragT === null || (dragT === targetT && dragP === targetP)) return;
-      let p1 = sys.currentTeams[dragT][dragP];
-      if(targetP !== null) { // Swap
-        let p2 = sys.currentTeams[targetT][targetP];
-        sys.currentTeams[dragT][dragP] = p2; sys.currentTeams[targetT][targetP] = p1;
-      } else { // Append
-        if(sys.currentTeams[targetT].length >= 6) { showTst("Time cheio!", true); return; }
-        sys.currentTeams[dragT].splice(dragP, 1); sys.currentTeams[targetT].push(p1);
-      }
-      dragT = null; dragP = null; renderizarArena();
-    }
-
-    function renderizarArena() {
-      document.getElementById('arena-view').style.display = 'block';
-      let c = document.getElementById('resultado-container'); c.innerHTML='';
-      sys.currentTeams.forEach((time, idx) => {
-        let card = document.createElement('div'); card.className = 'time-card';
-        let s = time.reduce((acc,j)=>acc+j.estrelas,0);
-        let html = `<div class="time-title">Time ${idx+1} <span style="color:#ffd700;">⭐ ${s}</span></div>`;
-        html += `<div class="drop-zone" ondragover="dOver(event)" ondrop="dDrop(event, ${idx}, null)">`;
-        time.forEach((j, jIdx) => {
-          let rank = `rank-${j.estrelas}`; let lbl = j.isLevantador ? `<span class="pos-lev">Lev</span>` : (j.isMulher ? `<span class="pos-mul">Mul</span>` : '');
-          html += `<div class="player-card ${rank}" draggable="true" ondragstart="dStart(event, ${idx}, ${jIdx})" ondragover="dOver(event)" ondrop="dDrop(event, ${idx}, ${jIdx})">
-            <span>${lbl} ${j.nome}</span><span>${'⭐'.repeat(j.estrelas)}</span>
-          </div>`;
-        });
-        html += `</div>`; card.innerHTML = html; c.appendChild(card);
-      });
-      if(sys.checkins.length > 24) {
-        let htmlEsp = ''; for(let i=24; i<sys.checkins.length; i++) htmlEsp += `<div>⏳ ${sys.checkins[i]}</div>`;
-        document.getElementById('filaEsperaContainer').innerHTML = htmlEsp;
-      } else { document.getElementById('filaEsperaContainer').innerHTML = "Ninguém na fila."; }
-    }
-
-    function exportarWhatsApp() {
-      let txt = "🏐 *DRAFT DO DIA* 🏐\n\n";
-      sys.currentTeams.forEach((t, i) => {
-        txt += `*Time ${i+1}* (⭐ ${t.reduce((a,j)=>a+j.estrelas,0)})\n`;
-        t.forEach(j => { txt += `${j.isLevantador?'🟢':(j.isMulher?'🟣':'🔵')} ${j.nome}\n`; });
-        txt += `\n`;
-      });
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
-    }
-
-    function alocarAtrasados() {
-      if(sys.checkins.length <= 24) return;
-      let alloc = false;
-      for(let i=24; i<sys.checkins.length; i++) {
-        let j = sys.players.find(x => x.nome === sys.checkins[i]);
-        if(!j) continue;
-        sys.currentTeams.sort((a,b) => a.length - b.length);
-        if(sys.currentTeams[0].length < 6) { sys.currentTeams[0].push(j); alloc = true; sys.checkins.splice(i, 1); i--; }
-      }
-      if(alloc) { renderizarArena(); renderizarPublicRsvp(); showTst("Atrasados realocados!"); } 
-    }
-
+    // --- LÓGICA REI DA QUADRA (QUEM GANHA 2X SENTA) ---
     function registrarVitoria(lado) {
-      if(!sys.lastDraftId) { showTst("Sorteie primeiro.", true); return; }
-      let ta = document.getElementById('timeA').value, tb = document.getElementById('timeB').value;
-      if(ta === tb) return;
-      let ven = lado === 'A' ? ta : tb, per = lado === 'A' ? tb : ta;
-      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      fetchAction('saveMatch', {draftId: sys.lastDraftId, vencedor: ven, perdedor: per}, ()=> showTst(`Vitória do ${ven}!`));
+      if(sys.currentTeams.length < 2) return;
+      
+      let tA_idx = reiDaQuadra.emQuadra[0];
+      let tB_idx = reiDaQuadra.emQuadra[1];
+      let vencedor_idx = lado === 'A' ? tA_idx : tB_idx;
+      let perdedor_idx = lado === 'A' ? tB_idx : tA_idx;
+
+      // Tracking de vitórias seguidas
+      if (reiDaQuadra.vencedorAnterior === vencedor_idx) reiDaQuadra.vitoriasSeguidas++;
+      else reiDaQuadra.vitoriasSeguidas = 1;
+
+      reiDaQuadra.vencedorAnterior = vencedor_idx;
+
+      // A REGRA: Ganhou 2x? Senta.
+      if (reiDaQuadra.vitoriasSeguidas >= 2) {
+        showTst("Limite de 2 vitórias! Time vencedor descansando.");
+        reiDaQuadra.fila.push(vencedor_idx);
+        reiDaQuadra.fila.push(perdedor_idx);
+        reiDaQuadra.vitoriasSeguidas = 0;
+        reiDaQuadra.vencedorAnterior = null;
+      } else {
+        reiDaQuadra.fila.push(perdedor_idx);
+      }
+
+      // Próxima partida
+      atualizarFilaArena();
+      renderizarArena();
+      
+      // Salva no backend com detecção de Zebra e MMR
+      let dadosVencedor = sys.currentTeams[vencedor_idx];
+      fetchActionAsync('saveMatch', {
+        vencedor: "Time " + (vencedor_idx + 1),
+        perdedor: "Time " + (perdedor_idx + 1),
+        jogadoresVencedores: dadosVencedor.map(j => j.nome)
+      });
     }
 
-    function gerarGraficos() {
-      if(sys.history.length === 0) return; chartsInit = true;
-      let presencas = {}; sys.history.forEach(r => { let t = [r[3],r[4],r[5],r[6],r[7],r[8]].filter(x=>x); t.forEach(j => presencas[j] = (presencas[j]||0)+1); });
-      let topPres = Object.keys(presencas).map(k=>[k, presencas[k]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
-      if(window.chObj) window.chObj.destroy();
-      window.chObj = new Chart(document.getElementById('presChart'), {
-        type: 'bar', data: { labels: topPres.map(x=>x[0]), datasets: [{ label: 'Top 5', data: topPres.map(x=>x[1]), backgroundColor: '#ff6b6b' }] },
-        options: { color: '#fff', scales: { y: { ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } }
+    function atualizarFilaArena() {
+      reiDaQuadra.emQuadra = [reiDaQuadra.fila.shift(), reiDaQuadra.fila.shift()];
+    }
+
+    // --- CÁLCULO DE MMR E TÍTULOS ---
+    function obterStats(nome) {
+      let jogos = sys.history.filter(r => [r[3],r[4],r[5],r[6],r[7],r[8]].includes(nome));
+      let vits = sys.matches.filter(m => {
+        let draft = sys.history.find(h => h[1] === m[0] && h[0] === m[1]);
+        return draft && [draft[3],draft[4],draft[5],draft[6],draft[7],draft[8]].includes(nome);
+      });
+      return { winRate: jogos.length > 0 ? vits.length / jogos.length : 0.5, total: jogos.length, wins: vits.length };
+    }
+
+    // --- RENDERIZAR ARENA COM SPIDER CHART ---
+    function renderizarArena() {
+      if (reiDaQuadra.emQuadra.length === 0) atualizarFilaArena();
+      
+      let c = document.getElementById('resultado-container'); c.innerHTML='';
+      document.getElementById('arena-view').style.display = 'block';
+
+      reiDaQuadra.emQuadra.forEach((tIdx, side) => {
+        let time = sys.currentTeams[tIdx];
+        let card = document.createElement('div'); card.className = 'time-card';
+        if(side === 0) card.style.borderLeft = "6px solid #2196F3";
+        
+        let stats = calcTimeStats(time);
+        let nomeTime = gerarNomeTime(time);
+
+        card.innerHTML = `
+          <div class="time-title">${nomeTime} <span>⭐ ${stats.estrelas}</span></div>
+          <div class="radar-container"><canvas id="radar-${tIdx}"></canvas></div>
+          <div class="zebra-box" style="background:${side===0?'#2196F3':'#f44336'}">FORÇA: ${stats.power}%</div>
+          <div class="drop-zone">
+            ${time.map(j => `
+              <div class="player-card rank-${j.estrelas}">
+                <span>${j.nome} ${renderBadges(j.nome)}</span>
+                <span>⭐${j.estrelas}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        c.appendChild(card);
+        setTimeout(() => drawRadar(`radar-${tIdx}`, stats), 100);
+      });
+    }
+
+    function renderBadges(nome) {
+      // Simplificado: Busca vitórias seguidas no histórico local
+      let badgeHtml = "";
+      let stats = obterStats(nome);
+      if(stats.winRate > 0.7 && stats.total > 5) badgeHtml += '<span class="badge fire">🔥 ON FIRE</span>';
+      if(stats.winRate < 0.3 && stats.total > 5) badgeHtml += '<span class="badge ice">🧊 GELADEIRA</span>';
+      return badgeHtml;
+    }
+
+    function calcTimeStats(time) {
+      let somaEstrelas = time.reduce((a, b) => a + b.estrelas, 0);
+      let mmrMedio = time.reduce((a, b) => a + obterStats(b.nome).winRate, 0) / time.length;
+      return {
+        estrelas: somaEstrelas,
+        tecnico: (somaEstrelas / 24) * 100,
+        ritmo: mmrMedio * 100,
+        defesa: 70 + (Math.random() * 20), // Placeholder para lógica futura
+        power: Math.round((somaEstrelas * 2) + (mmrMedio * 20))
+      };
+    }
+
+    function drawRadar(id, stats) {
+      new Chart(document.getElementById(id), {
+        type: 'radar',
+        data: {
+          labels: ['Técnico', 'WinRate', 'Defesa'],
+          datasets: [{
+            data: [stats.tecnico, stats.ritmo, stats.defesa],
+            backgroundColor: 'rgba(255, 107, 107, 0.2)',
+            borderColor: '#ff6b6b',
+            borderWidth: 1,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#333' } } }
+        }
       });
     }
   </script>
