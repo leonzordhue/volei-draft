@@ -4,158 +4,353 @@
   <meta charset="UTF-8">
   <title>Vôlei Draft PRO 3.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
   <style>
-    /* ... Manter estilos anteriores e adicionar ... */
-    .arena-status { background: #333; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ffa000; font-size: 14px; }
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; }
-    .fire { background: #ff4500; color: white; }
-    .ice { background: #00ffff; color: #000; }
-    .radar-container { width: 100%; max-width: 200px; margin: 0 auto; height: 150px; }
-    .zebra-box { font-size: 11px; font-weight: bold; padding: 4px; border-radius: 4px; display: inline-block; margin-top: 5px;}
+    :root { --bg: #121212; --card: #1e1e1e; --primary: #ff6b6b; --text: #f0f0f0; --success: #4CAF50; --danger: #E91E63; }
+    body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    .header-logo { text-align: center; margin-bottom: 20px; }
+    .header-logo img { width: 70px; filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.5)); }
+    .header-logo h1 { margin: 5px 0 0 0; font-size: 20px; color: var(--text); }
+    
+    .mode-switch { text-align: center; margin-bottom: 20px; }
+    .mode-switch select { width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; background: #333; color: white; border: 1px solid var(--primary); font-weight: bold;}
+
+    .view { display: none; } .view.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .section-card { background: var(--card); padding: 15px; border-radius: 16px; border: 1px solid #333; margin-bottom: 20px; }
+    .section-title { font-size: 16px; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 0; margin-bottom: 15px; }
+    
+    input, select, button { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: none; font-size: 15px; }
+    input, select { background: #2a2a2a; color: var(--text); border: 1px solid #444; }
+    button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+    .btn-success { background: var(--success); } .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
+    .btn-warning { background: #ff9800; color: #fff;}
+    .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+
+    .roster-list { max-height: 300px; overflow-y: auto; background: #2a2a2a; border-radius: 12px; padding: 10px; }
+    .roster-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #444; font-size: 14px;}
+    
+    .arena-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+    @media (min-width: 1024px) { .arena-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); position: relative;}
+    .time-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 5px;}
+    
+    .radar-container { width: 100%; height: 180px; margin: 10px 0; }
+    .player-card { display: flex; justify-content: space-between; padding: 8px; margin-bottom: 5px; border-radius: 8px; border-left: 4px solid #555; background: #1a1a1a; font-size: 13px; cursor: grab;}
+    .rank-1 { border-left-color: #cd7f32; } .rank-2 { border-left-color: #c0c0c0; } .rank-3 { border-left-color: #ffd700; } .rank-4 { border-left-color: #00ffff; }
+    
+    .badge { padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
+    .fire { background: #ff4500; color: white; } .ice { background: #00ffff; color: #000; }
+
+    .admin-nav { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; }
+    .admin-nav button { padding: 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; margin-bottom: 0; flex-shrink: 0;}
+
+    .zebra-box { font-size: 11px; font-weight: bold; padding: 4px; border-radius: 4px; background: #444; display: inline-block; margin-bottom: 10px;}
+    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 30px; display: none; z-index: 9999; font-weight: bold;}
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
+    .modal-content { background: var(--card); padding: 20px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; }
   </style>
 </head>
 <body>
 
   <script> const API_URL = "https://script.google.com/macros/s/AKfycbxjdeRnBBrjMu79AhRF6yTLttHKmIa9NPOASYYqyiM4y0CT7AGgdhesbfKau6VEipHJ/exec"; </script>
+  <div id="toast">Sucesso!</div>
+  <div class="header-logo"><img src="https://cdn-icons-png.flaticon.com/512/5402/5402396.png"><h1>Vôlei PRO 3.5</h1></div>
+
+  <div class="mode-switch">
+    <select id="appMode" onchange="changeMode()"><option value="public">🙋‍♂️ Modo Jogador</option><option value="admin">⚙️ Modo Administrador</option></select>
+  </div>
+
+  <div id="view-public" class="view active">
+    <div class="section-card">
+      <h2 class="section-title">Check-in do Dia</h2>
+      <select id="publicSelectRsvp"><option value="">Aguardando lista...</option></select>
+      <button onclick="fazerCheckin()" class="btn-success" id="btnConfirmarRsvp" disabled>✅ Confirmar Presença</button>
+      <div style="margin-top: 20px;">
+        <h3 style="font-size: 14px;">Confirmados (<span id="rsvpCount">0</span>)</h3>
+        <div class="roster-list" id="rsvpListPublic"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-admin" class="view">
+    <div class="admin-nav">
+      <button onclick="switchAdminTab('roster')" class="btn-outline" style="background:var(--primary); color:white;" id="tab-roster">1. Convocação</button>
+      <button onclick="switchAdminTab('draft')" class="btn-outline" id="tab-draft">2. Draft/Arena</button>
+      <button onclick="switchAdminTab('match')" class="btn-outline" id="tab-match">3. Partidas</button>
+      <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Banco</button>
+    </div>
+
+    <div id="admin-roster" class="view active">
+      <div class="section-card">
+        <h2 class="section-title">Lista de Convocados</h2>
+        <input type="text" id="adminBuscaNome" list="listaGlobal" placeholder="Buscar no banco...">
+        <datalist id="listaGlobal"></datalist>
+        <button onclick="addRosterAdmin()">Adicionar à Lista</button>
+        <div class="roster-list" id="adminRosterBuildList" style="margin: 10px 0;"></div>
+        <button onclick="salvarListaOficial()" class="btn-success">☁️ Publicar Lista Oficial</button>
+        <button onclick="limparDiaInteiro()" class="btn-outline" style="color:var(--danger); border-color:var(--danger);">🗑️ Zerar Dia</button>
+      </div>
+    </div>
+
+    <div id="admin-draft" class="view">
+      <div class="section-card">
+        <h2 class="section-title">Gerar Times</h2>
+        <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
+      </div>
+      <div id="arena-view" style="display:none;">
+        <div class="arena-status" id="reiStatus">Próximo jogo: Aguardando vitória...</div>
+        <div class="arena-grid" id="resultado-container"></div>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+           <button onclick="registrarVitoria('A')" class="btn-success">🏆 Venceu Esq.</button>
+           <button onclick="registrarVitoria('B')" class="btn-success">🏆 Venceu Dir.</button>
+        </div>
+        <button onclick="exportarWhatsApp()" class="btn-outline" style="margin-top:10px;">📲 WhatsApp</button>
+      </div>
+    </div>
+
+    <div id="admin-match" class="view">
+      <div class="section-card"><h2 class="section-title">📊 Analytics Temporada</h2><canvas id="presChart"></canvas></div>
+    </div>
+
+    <div id="admin-cad" class="view">
+      <div class="section-card">
+        <h2 class="section-title">Novo Cadastro</h2>
+        <input type="text" id="nomeCad" placeholder="Nome completo">
+        <select id="estCad"><option value="1">1 Estrela</option><option value="2">2 Estrelas</option><option value="3" selected>3 Estrelas</option><option value="4">4 Estrelas</option></select>
+        <select id="sexoCad"><option value="M">Masculino</option><option value="F">Feminino</option></select>
+        <select id="levCad"><option value="Nao">Normal</option><option value="Sim">Levantador</option></select>
+        <button onclick="salvarNovoJogador()">Cadastrar</button>
+      </div>
+      <div class="roster-list" id="adminDBList"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="playerModal" onclick="closeModal(event)">
+    <div class="modal-content">
+      <h2 id="m-nome">Nome</h2>
+      <div id="m-stars" style="font-size:20px; margin-bottom:15px;"></div>
+      <div class="stat-box">Win Rate: <strong id="m-wins">0%</strong></div>
+      <div class="stat-box">Faltas: <strong id="m-faltas" style="color:var(--danger)">0</strong></div>
+      <div class="stat-box">Nêmesis: <strong id="m-nemesis">-</strong></div>
+      <button class="btn-warning" onclick="registrarFalta()" style="margin-top:15px;">📉 Registrar Falta</button>
+      <button class="btn-outline" onclick="document.getElementById('playerModal').style.display='none'">Fechar</button>
+    </div>
+  </div>
 
   <script>
     let sys = { players: [], roster: [], checkins: [], history: [], matches: [], absences: [], currentTeams: [] };
-    let reiDaQuadra = { emQuadra: [], fila: [0, 1, 2, 3], vitoriasSeguidas: 0 };
+    let tempAdminRoster = [];
+    let reiDaQuadra = { emQuadra: [0, 1], fila: [2, 3], vitsVencedor: 0, ultimoVencedor: null };
 
-    // --- NOMES DE TIMES AUTOMÁTICOS ---
-    function gerarNomeTime(jogadores) {
-      const prefixos = ["Os Galácticos de", "Sada Cruzeiro de", "Vôlei Mania de", "Muralha de", "Vingadores de", "Elite de"];
-      let randomPlayer = jogadores[Math.floor(Math.random() * jogadores.length)].nome.split(' ')[0];
-      return `${prefixos[Math.floor(Math.random() * prefixos.length)]} ${randomPlayer}`;
-    }
+    const showTst = (m, err=false) => { let t=document.getElementById('toast'); t.innerText=m; t.style.background=err?'var(--danger)':'var(--success)'; t.style.display='block'; setTimeout(()=>t.style.display='none', 2500); };
 
-    // --- LÓGICA REI DA QUADRA (QUEM GANHA 2X SENTA) ---
-    function registrarVitoria(lado) {
-      if(sys.currentTeams.length < 2) return;
-      
-      let tA_idx = reiDaQuadra.emQuadra[0];
-      let tB_idx = reiDaQuadra.emQuadra[1];
-      let vencedor_idx = lado === 'A' ? tA_idx : tB_idx;
-      let perdedor_idx = lado === 'A' ? tB_idx : tA_idx;
+    window.onload = () => refreshData();
 
-      // Tracking de vitórias seguidas
-      if (reiDaQuadra.vencedorAnterior === vencedor_idx) reiDaQuadra.vitoriasSeguidas++;
-      else reiDaQuadra.vitoriasSeguidas = 1;
-
-      reiDaQuadra.vencedorAnterior = vencedor_idx;
-
-      // A REGRA: Ganhou 2x? Senta.
-      if (reiDaQuadra.vitoriasSeguidas >= 2) {
-        showTst("Limite de 2 vitórias! Time vencedor descansando.");
-        reiDaQuadra.fila.push(vencedor_idx);
-        reiDaQuadra.fila.push(perdedor_idx);
-        reiDaQuadra.vitoriasSeguidas = 0;
-        reiDaQuadra.vencedorAnterior = null;
-      } else {
-        reiDaQuadra.fila.push(perdedor_idx);
-      }
-
-      // Próxima partida
-      atualizarFilaArena();
-      renderizarArena();
-      
-      // Salva no backend com detecção de Zebra e MMR
-      let dadosVencedor = sys.currentTeams[vencedor_idx];
-      fetchActionAsync('saveMatch', {
-        vencedor: "Time " + (vencedor_idx + 1),
-        perdedor: "Time " + (perdedor_idx + 1),
-        jogadoresVencedores: dadosVencedor.map(j => j.nome)
-      });
-    }
-
-    function atualizarFilaArena() {
-      reiDaQuadra.emQuadra = [reiDaQuadra.fila.shift(), reiDaQuadra.fila.shift()];
-    }
-
-    // --- CÁLCULO DE MMR E TÍTULOS ---
-    function obterStats(nome) {
-      let jogos = sys.history.filter(r => [r[3],r[4],r[5],r[6],r[7],r[8]].includes(nome));
-      let vits = sys.matches.filter(m => {
-        let draft = sys.history.find(h => h[1] === m[0] && h[0] === m[1]);
-        return draft && [draft[3],draft[4],draft[5],draft[6],draft[7],draft[8]].includes(nome);
-      });
-      return { winRate: jogos.length > 0 ? vits.length / jogos.length : 0.5, total: jogos.length, wins: vits.length };
-    }
-
-    // --- RENDERIZAR ARENA COM SPIDER CHART ---
-    function renderizarArena() {
-      if (reiDaQuadra.emQuadra.length === 0) atualizarFilaArena();
-      
-      let c = document.getElementById('resultado-container'); c.innerHTML='';
-      document.getElementById('arena-view').style.display = 'block';
-
-      reiDaQuadra.emQuadra.forEach((tIdx, side) => {
-        let time = sys.currentTeams[tIdx];
-        let card = document.createElement('div'); card.className = 'time-card';
-        if(side === 0) card.style.borderLeft = "6px solid #2196F3";
-        
-        let stats = calcTimeStats(time);
-        let nomeTime = gerarNomeTime(time);
-
-        card.innerHTML = `
-          <div class="time-title">${nomeTime} <span>⭐ ${stats.estrelas}</span></div>
-          <div class="radar-container"><canvas id="radar-${tIdx}"></canvas></div>
-          <div class="zebra-box" style="background:${side===0?'#2196F3':'#f44336'}">FORÇA: ${stats.power}%</div>
-          <div class="drop-zone">
-            ${time.map(j => `
-              <div class="player-card rank-${j.estrelas}">
-                <span>${j.nome} ${renderBadges(j.nome)}</span>
-                <span>⭐${j.estrelas}</span>
-              </div>
-            `).join('')}
-          </div>
-        `;
-        c.appendChild(card);
-        setTimeout(() => drawRadar(`radar-${tIdx}`, stats), 100);
-      });
-    }
-
-    function renderBadges(nome) {
-      // Simplificado: Busca vitórias seguidas no histórico local
-      let badgeHtml = "";
-      let stats = obterStats(nome);
-      if(stats.winRate > 0.7 && stats.total > 5) badgeHtml += '<span class="badge fire">🔥 ON FIRE</span>';
-      if(stats.winRate < 0.3 && stats.total > 5) badgeHtml += '<span class="badge ice">🧊 GELADEIRA</span>';
-      return badgeHtml;
-    }
-
-    function calcTimeStats(time) {
-      let somaEstrelas = time.reduce((a, b) => a + b.estrelas, 0);
-      let mmrMedio = time.reduce((a, b) => a + obterStats(b.nome).winRate, 0) / time.length;
-      return {
-        estrelas: somaEstrelas,
-        tecnico: (somaEstrelas / 24) * 100,
-        ritmo: mmrMedio * 100,
-        defesa: 70 + (Math.random() * 20), // Placeholder para lógica futura
-        power: Math.round((somaEstrelas * 2) + (mmrMedio * 20))
-      };
-    }
-
-    function drawRadar(id, stats) {
-      new Chart(document.getElementById(id), {
-        type: 'radar',
-        data: {
-          labels: ['Técnico', 'WinRate', 'Defesa'],
-          datasets: [{
-            data: [stats.tecnico, stats.ritmo, stats.defesa],
-            backgroundColor: 'rgba(255, 107, 107, 0.2)',
-            borderColor: '#ff6b6b',
-            borderWidth: 1,
-            pointRadius: 0
-          }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#333' } } }
+    function refreshData() {
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
+      .then(r => r.json()).then(d => {
+        if(d.status === 'success') {
+          sys = d.data; tempAdminRoster = [...sys.roster];
+          renderAll();
         }
       });
+    }
+
+    function fetchActionAsync(action, payload) {
+      payload.action = action;
+      fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    }
+
+    function renderAll() {
+      popularDatalist(); renderPublic(); renderAdminRoster(); renderAdminDB();
+    }
+
+    function popularDatalist() {
+      let dl = document.getElementById('listaGlobal'); dl.innerHTML='';
+      sys.players.forEach(j => { let o = document.createElement('option'); o.value = j.nome; dl.appendChild(o); });
+    }
+
+    // MODO JOGADOR
+    function renderPublic() {
+      let pends = sys.roster.filter(n => !sys.checkins.includes(n));
+      let sel = document.getElementById('publicSelectRsvp'), btn = document.getElementById('btnConfirmarRsvp');
+      sel.innerHTML = '<option value="">Selecione seu nome...</option>';
+      pends.forEach(n => sel.innerHTML += `<option value="${n}">${n}</option>`);
+      sel.disabled = pends.length === 0; btn.disabled = pends.length === 0;
+      
+      let html = '';
+      sys.checkins.forEach((n, i) => {
+        let j = sys.players.find(x => x.nome === n);
+        if(j) html += `<div class="roster-item" onclick="abrirCard('${j.nome}')"><span>${i+1}. ${j.nome} ${getBadge(j.nome)}</span><span>${'⭐'.repeat(j.estrelas)}</span></div>`;
+      });
+      document.getElementById('rsvpListPublic').innerHTML = html || 'Ninguém ainda.';
+      document.getElementById('rsvpCount').innerText = sys.checkins.length;
+    }
+
+    function fazerCheckin() {
+      let n = document.getElementById('publicSelectRsvp').value;
+      if(!n) return; sys.checkins.push(n); renderPublic(); showTst("Confirmado!");
+      fetchActionAsync('rsvp', {nome: n});
+    }
+
+    // ADMIN TABS
+    function changeMode() {
+      let m = document.getElementById('appMode').value;
+      if(m === 'admin' && prompt("Senha:") !== "1234voleidavila") { document.getElementById('appMode').value = 'public'; return; }
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + m).classList.add('active');
+    }
+
+    function switchAdminTab(t) {
+      document.querySelectorAll('#view-admin > .view').forEach(e=>e.classList.remove('active'));
+      document.getElementById('admin-'+t).classList.add('active');
+      if(t === 'match') gerarGraficos();
+    }
+
+    // CONVOCAÇÃO
+    function addRosterAdmin() {
+      let n = document.getElementById('adminBuscaNome').value;
+      if(n && !tempAdminRoster.includes(n)) { tempAdminRoster.push(n); renderAdminRoster(); }
+      document.getElementById('adminBuscaNome').value = '';
+    }
+    function renderAdminRoster() {
+      let c = document.getElementById('adminRosterBuildList'); c.innerHTML = '';
+      tempAdminRoster.forEach(n => c.innerHTML += `<div class="roster-item">${n} <button class="btn-danger" onclick="tempAdminRoster=tempAdminRoster.filter(x=>x!=='${n}');renderAdminRoster()">✖</button></div>`);
+    }
+    function salvarListaOficial() {
+      sys.roster = [...tempAdminRoster]; renderPublic(); showTst("Publicado!");
+      fetchActionAsync('saveRoster', {roster: sys.roster});
+    }
+    function limparDiaInteiro() {
+       if(confirm("Zerar tudo?")) { sys.roster=[]; sys.checkins=[]; tempAdminRoster=[]; renderAll(); fetchActionAsync('clearDay', {}); }
+    }
+
+    // SORTEIO IA
+    function iniciarSorteio() {
+      if(sys.checkins.length < 4) return showTst("Mínimo 4!", true);
+      let jogs = sys.checkins.slice(0,24).map(n => sys.players.find(p=>p.nome===n)).filter(x=>x);
+      
+      // Lógica de Sorteio Balanceado (MMR + Anti-Panela)
+      let times = [[],[],[],[]];
+      let levs = jogs.filter(j=>j.isLevantador), muls = jogs.filter(j=>j.isMulher && !j.isLevantador), rest = jogs.filter(j=>!j.isLevantador && (!j.isMulher||(j.isMulher&&j.isLevantador)));
+      
+      for(let i=0; i<4; i++) if(levs.length>0) times[i].push(levs.splice(Math.floor(Math.random()*levs.length),1)[0]);
+      rest = [...rest, ...levs];
+      muls.forEach(m => { 
+        let td = times.filter(t=>t.filter(j=>j.isMulher).length<2); 
+        if(td.length>0){ td.sort((a,b)=>sumEst(a)-sumEst(b)); times[times.indexOf(td[0])].push(m); } else rest.push(m); 
+      });
+      rest.sort((a,b)=>b.estrelas-a.estrelas).forEach(j => { times.sort((a,b)=>sumEst(a)-sumEst(b)); times[0].push(j); });
+      
+      sys.currentTeams = times.filter(t=>t.length>0);
+      reiDaQuadra = { emQuadra: [0, 1], fila: sys.currentTeams.length > 2 ? [2, 3].slice(0, sys.currentTeams.length-2) : [], vitsVencedor: 0 };
+      renderArena();
+      fetchActionAsync('saveDraft', {times: sys.currentTeams});
+    }
+
+    const sumEst = t => t.reduce((s,j)=>s+j.estrelas,0);
+
+    function renderArena() {
+      document.getElementById('arena-view').style.display = 'block';
+      let c = document.getElementById('resultado-container'); c.innerHTML='';
+      
+      reiDaQuadra.emQuadra.forEach((tIdx, side) => {
+        if(tIdx === undefined) return;
+        let t = sys.currentTeams[tIdx];
+        let card = document.createElement('div'); card.className = 'time-card';
+        let nome = gerarNomeTime(t);
+        card.innerHTML = `<div class="time-title">${nome} <span>⭐${sumEst(t)}</span></div>
+        <div class="radar-container"><canvas id="radar-${tIdx}"></canvas></div>
+        <div class="drop-zone">${t.map(j=>`<div class="player-card rank-${j.estrelas}">${j.nome} <span>⭐${j.estrelas}</span></div>`).join('')}</div>`;
+        c.appendChild(card);
+        setTimeout(() => drawRadar(`radar-${tIdx}`, t), 100);
+      });
+      
+      document.getElementById('reiStatus').innerText = `Próximo: ${reiDaQuadra.fila.length > 0 ? 'Time '+(reiDaQuadra.fila[0]+1) : 'Ninguém na fila'}`;
+    }
+
+    function registrarVitoria(lado) {
+      let v_idx = reiDaQuadra.emQuadra[lado === 'A' ? 0 : 1];
+      let p_idx = reiDaQuadra.emQuadra[lado === 'A' ? 1 : 0];
+      
+      if(reiDaQuadra.ultimoVencedor === v_idx) reiDaQuadra.vitsVencedor++;
+      else { reiDaQuadra.ultimoVencedor = v_idx; reiDaQuadra.vitsVencedor = 1; }
+
+      if(reiDaQuadra.vitsVencedor >= 2) {
+        showTst("2 Vitórias! Time senta.");
+        reiDaQuadra.fila.push(v_idx); reiDaQuadra.fila.push(p_idx);
+        reiDaQuadra.vitsVencedor = 0; reiDaQuadra.ultimoVencedor = null;
+      } else {
+        reiDaQuadra.fila.push(p_idx);
+      }
+      
+      reiDaQuadra.emQuadra = [reiDaQuadra.ultimoVencedor ?? reiDaQuadra.fila.shift(), reiDaQuadra.fila.shift()].filter(x=>x!==undefined);
+      renderArena();
+      fetchActionAsync('saveMatch', {vencedor: "Time "+(v_idx+1), perdedor: "Time "+(p_idx+1), jogadoresVencedores: sys.currentTeams[v_idx].map(j=>j.nome)});
+    }
+
+    function gerarNomeTime(t) {
+      const pre = ["Galácticos", "Sada Cruzeiro", "Muralha", "Elite", "Vingadores"];
+      return pre[Math.floor(Math.random()*pre.length)] + " de " + t[Math.floor(Math.random()*t.length)].nome.split(' ')[0];
+    }
+
+    function drawRadar(id, t) {
+      const ctx = document.getElementById(id);
+      if(!ctx) return;
+      new Chart(ctx, {
+        type: 'radar',
+        data: { labels: ['Ataque', 'WinRate', 'Defesa'], datasets: [{ data: [sumEst(t)*4, 50, 70], backgroundColor: 'rgba(255,107,107,0.2)', borderColor: '#ff6b6b' }] },
+        options: { plugins: { legend: { display: false } }, scales: { r: { min:0, max:100, ticks: { display:false } } } }
+      });
+    }
+
+    // STATS & MODAL
+    function abrirCard(n) {
+      playerSelecionadoModal = sys.players.find(p=>p.nome===n);
+      document.getElementById('m-nome').innerText = n;
+      document.getElementById('m-stars').innerText = '⭐'.repeat(playerSelecionadoModal.estrelas);
+      document.getElementById('m-faltas').innerText = sys.absences.filter(f=>f[0]===n).length;
+      document.getElementById('playerModal').style.display = 'flex';
+    }
+    function registrarFalta() {
+      let n = playerSelecionadoModal.nome;
+      sys.absences.push([n, new Date().toLocaleString()]);
+      document.getElementById('m-faltas').innerText = sys.absences.filter(f=>f[0]===n).length;
+      fetchActionAsync('registerAbsence', {nome: n});
+      showTst("Falta gravada.");
+    }
+    function getBadge(n) {
+      let wr = 0.5; // Placeholder
+      if(wr > 0.7) return '<span class="badge fire">🔥</span>';
+      return '';
+    }
+
+    function renderAdminDB() {
+      let c = document.getElementById('adminDBList'); c.innerHTML = '';
+      sys.players.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(j => {
+        c.innerHTML += `<div class="roster-item" onclick="abrirCard('${j.nome}')"><b>${j.nome}</b> <span>⭐${j.estrelas}</span></div>`;
+      });
+    }
+
+    function exportarWhatsApp() {
+      let txt = "🏐 *DRAFT PRO* 🏐\n\n";
+      sys.currentTeams.forEach((t, i) => {
+        txt += `*Time ${i+1}* (⭐${sumEst(t)})\n`;
+        t.forEach(j => txt += `- ${j.nome}\n`);
+        txt += "\n";
+      });
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
     }
   </script>
 </body>
