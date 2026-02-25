@@ -2,10 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Vôlei Draft PRO 3.0</title>
+  <title>Vôlei Draft PRO</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
   <style>
     :root { --bg: #121212; --card: #1e1e1e; --primary: #ff6b6b; --text: #f0f0f0; --success: #4CAF50; --danger: #E91E63; }
     body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; }
@@ -40,15 +46,16 @@
 
     .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); }
     .time-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 8px;}
-    .player-card { display: flex; justify-content: space-between; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #555; background: #1a1a1a; font-size: 14px; cursor: pointer; transition: 0.2s;}
-    .player-card:hover { transform: scale(1.02); background: #333;}
+    
+    /* Area de Drop do Drag & Drop */
+    .drop-zone { min-height: 60px; padding-bottom: 10px;}
+    .player-card { display: flex; justify-content: space-between; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #555; background: #1a1a1a; font-size: 14px; cursor: grab; transition: 0.2s;}
+    .player-card:active { cursor: grabbing; transform: scale(0.95); opacity: 0.8;}
     .rank-1 { border-left-color: #cd7f32; } .rank-2 { border-left-color: #c0c0c0; } .rank-3 { border-left-color: #ffd700; } .rank-4 { border-left-color: #00ffff; box-shadow: 0 0 8px rgba(0,255,255,0.3); } 
 
-    /* Modal do Jogador */
     .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; }
     .modal-content { background: var(--card); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #444;}
-    .stat-box { background: #111; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 14px; display: flex; justify-content: space-between;}
-
+    
     .admin-nav { display: flex; gap: 5px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
     .admin-nav button { padding: 10px; font-size: 14px; border-radius: 8px; white-space: nowrap; margin-bottom: 0;}
 
@@ -58,8 +65,7 @@
 </head>
 <body>
 
-  <script> const API_URL = "https://script.google.com/macros/s/AKfycbzScbDFFtFjo3LSiIsJZ2NmvKXLZw4FZS6_120juogLxP0bXL-nyaO8BM65ZtVJ-OJL/exec"; </script>
-
+  <script> const API_URL = "https://script.google.com/macros/s/AKfycbyiHsW3_Az5baGCnYXUvoOxyZIz9xfwc_qmVIx2X9DD5a2WndPBa1t164QxCQfNvqL-/exec"; </script>
   <div id="toast">Sucesso!</div>
   
   <div class="header-logo">
@@ -67,7 +73,7 @@
     <h1>Draft PRO 3.0</h1>
   </div>
 
-  <div id="sync-status">Conectando ao Banco Global...</div>
+  <div id="sync-status">🔄 Conectando aos servidores do Google...</div>
 
   <div class="mode-switch">
     <select id="appMode" onchange="changeMode()">
@@ -82,7 +88,7 @@
       <p style="color:#aaa; font-size:14px;">Apenas jogadores convocados pelo Admin podem confirmar presença.</p>
       
       <select id="publicSelectRsvp">
-        <option value="">⏳ Aguardando Lista do Admin...</option>
+        <option value="">⏳ Aguardando Lista...</option>
       </select>
       
       <button onclick="fazerCheckin()" class="btn-success" id="btnConfirmarRsvp" disabled>✅ Confirmar Presença</button>
@@ -106,24 +112,20 @@
     <div id="admin-roster" class="view active">
       <div class="section-card">
         <h2 class="section-title">Montar Lista de Convocados</h2>
-        <p style="color:#aaa; font-size:13px;">Busque no banco e adicione quem foi convidado para jogar hoje.</p>
-        
         <div style="display:flex; gap:10px; margin-bottom:15px;">
           <input type="text" id="adminBuscaNome" list="listaGlobal" placeholder="Nome..." autocomplete="off" style="margin:0;">
           <datalist id="listaGlobal"></datalist>
           <button onclick="addRosterAdmin()" style="width:auto; margin:0; padding:0 20px;">+</button>
         </div>
-        
         <div class="roster-list" id="adminRosterBuildList" style="margin-bottom:15px;"></div>
-        
-        <button onclick="salvarListaOficial()" class="btn-success">☁️ Salvar Lista Oficial na Nuvem</button>
+        <button onclick="salvarListaOficial()" class="btn-success">☁️ Salvar Lista na Nuvem</button>
         <button onclick="limparDiaInteiro()" class="btn-outline" style="border-color:#ff6b6b; color:#ff6b6b; margin-top:10px;">🗑️ Iniciar Novo Dia (Zerar Tudo)</button>
       </div>
     </div>
 
     <div id="admin-draft" class="view">
       <div class="section-card">
-        <h2 class="section-title">Jogadores que Confirmaram</h2>
+        <h2 class="section-title">Jogadores Confirmados</h2>
         <div style="display:flex; justify-content:space-between; color:#aaa; font-size:13px; margin-bottom:10px;">
           <span>Prontos para Draft: <strong id="adminDraftCount" style="color:white;">0</strong></span>
         </div>
@@ -133,7 +135,12 @@
 
       <div id="arena-view" style="display:none;">
         <h2 class="section-title" style="text-align:center;">🏐 ARENA</h2>
+        <p style="color:#aaa; font-size:12px; text-align:center;">Segure e arraste um jogador para trocar de time (Swap).</p>
+        
         <div class="arena-grid" id="resultado-container"></div>
+        
+        <button onclick="exportarWhatsApp()" class="btn-success" style="margin-top:15px;">📲 Enviar Sorteio para WhatsApp</button>
+
         <div style="margin-top: 20px; background:#1a1a1a; padding:15px; border-radius:12px; border:1px dashed #ffa000;">
           <h3 style="margin-top:0; font-size:15px; color:#ffa000;">Fila de Atrasados / Sobras</h3>
           <div id="filaEsperaContainer" style="color:#aaa; font-size:14px; margin-bottom:10px;">Ninguém sobrando.</div>
@@ -156,7 +163,7 @@
         </div>
       </div>
       <div class="section-card">
-        <h2 class="section-title">📊 Gráfico de Frequência</h2>
+        <h2 class="section-title">📊 Frequência Geral</h2>
         <canvas id="presChart" style="background:#222; border-radius:8px; padding:10px;"></canvas>
       </div>
     </div>
@@ -171,7 +178,6 @@
         <select id="levCad"><option value="Nao">Normal</option><option value="Sim">Levantador Oficial</option></select>
         <button onclick="salvarNovoJogador()" style="background:#4CAF50;">Adicionar ao Banco Global</button>
       </div>
-      
       <div class="section-card">
         <h2 class="section-title">🗑️ Gerenciar Banco Global</h2>
         <input type="text" id="filterDB" placeholder="Buscar no banco para excluir..." onkeyup="filtrarDB()" style="margin-bottom:10px;">
@@ -183,106 +189,78 @@
 
   <div class="modal-overlay" id="playerModal" onclick="closeModal(event)">
     <div class="modal-content">
-      <h2 id="m-nome" style="margin-top:0; color:var(--primary);">Nome do Jogador</h2>
+      <h2 id="m-nome" style="margin-top:0; color:var(--primary);">Nome</h2>
       <div style="font-size:24px; margin-bottom:15px;" id="m-stars">⭐⭐⭐</div>
-      
-      <div class="stat-box"><span>Partidas Jogadas:</span><strong id="m-games">0</strong></div>
-      <div class="stat-box"><span>Vitórias (Win Rate):</span><strong id="m-wins" style="color:var(--success);">0%</strong></div>
-      <div class="stat-box"><span>Melhor Dupla:</span><strong id="m-duo" style="color:#00ffff;">-</strong></div>
-      
-      <button class="btn-danger" style="margin-top:20px; width:100%; padding:15px; font-size:14px;" onclick="excluirJogador()">🗑️ Excluir Jogador do Banco</button>
+      <button class="btn-danger" style="margin-top:20px; width:100%; padding:15px;" onclick="excluirJogador()">🗑️ Excluir Jogador do Banco</button>
       <button class="btn-outline" style="margin-top:10px;" onclick="document.getElementById('playerModal').style.display='none'">Fechar</button>
     </div>
   </div>
 
   <script>
-    // =====================================
-    // MOTOR DE ESTADO E DADOS DA API
-    // =====================================
+    // INJEÇÃO PWA P/ ÍCONE NO CELULAR/DESKTOP
+    try {
+      const manifestObj = {
+        name: "Vôlei Draft PRO", short_name: "VôleiPRO", display: "standalone",
+        background_color: "#121212", theme_color: "#ff6b6b",
+        icons: [{ src: "https://cdn-icons-png.flaticon.com/512/5402/5402396.png", sizes: "512x512", type: "image/png" }]
+      };
+      const link = document.createElement('link'); link.rel = 'manifest';
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(manifestObj)], {type: 'application/json'}));
+      document.head.appendChild(link);
+    } catch(e) {}
+
     let sys = { players: [], roster: [], checkins: [], history: [], matches: [], lastDraftId: null, currentTeams: [] };
     let tempAdminRoster = [];
-    let chartsInit = false;
-    let playerSelecionadoModal = null;
+    let chartsInit = false; let playerSelecionadoModal = null;
 
-    // SONS NATIVOS
     const actx = new (window.AudioContext || window.webkitAudioContext)();
     function play(t) {
-      if(actx.state==='suspended') actx.resume();
-      let o=actx.createOscillator(), g=actx.createGain(); o.connect(g); g.connect(actx.destination);
+      if(actx.state==='suspended') actx.resume(); let o=actx.createOscillator(), g=actx.createGain(); o.connect(g); g.connect(actx.destination);
       if(t==='tick'){ o.type='sine'; o.frequency.setValueAtTime(800,actx.currentTime); g.gain.setValueAtTime(0.1,actx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,actx.currentTime+0.1); o.start(); o.stop(actx.currentTime+0.1); }
       if(t==='epic'){ o.type='square'; o.frequency.setValueAtTime(300,actx.currentTime); o.frequency.exponentialRampToValueAtTime(900,actx.currentTime+0.8); g.gain.setValueAtTime(0.2,actx.currentTime); g.gain.linearRampToValueAtTime(0,actx.currentTime+0.8); o.start(); o.stop(actx.currentTime+0.8); }
     }
 
     function showTst(m, err=false) { let t=document.getElementById('toast'); t.innerText=m; t.style.background=err?'var(--danger)':'var(--success)'; t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); }
 
-    // =====================================
-    // CARREGAMENTO E API
-    // =====================================
     window.onload = () => {
-      if(API_URL === "COLE_SUA_URL_AQUI") {
-        document.getElementById('sync-status').innerText = "❌ ERRO: Coloque a sua URL da API no código!"; return;
-      }
+      if(API_URL === "COLE_SUA_URL_AQUI") { document.getElementById('sync-status').innerText = "❌ ERRO: Coloque a URL da API no código!"; return; }
       refreshData();
     };
 
     function refreshData(callback) {
-      document.getElementById('sync-status').style.display = 'block';
-      document.getElementById('sync-status').innerText = "🔄 Sincronizando BD...";
-      
+      document.getElementById('sync-status').style.display = 'block'; document.getElementById('sync-status').innerText = "🔄 Sincronizando BD...";
       fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
       .then(r => r.json()).then(data => {
         if(data.status === 'success') {
           sys = { ...sys, ...data.data };
-          tempAdminRoster = [...sys.roster]; // Clona a lista da nuvem pro Admin editar
-          
-          popularDatalist();
-          renderizarPublicRsvp();
-          renderizarAdminRoster();
-          renderizarAdminDB();
-          
+          tempAdminRoster = [...sys.roster];
+          popularDatalist(); renderizarPublicRsvp(); renderizarAdminRoster(); renderizarAdminDB();
           document.getElementById('sync-status').style.display = 'none';
           if(callback) callback();
-        } else showTst("Erro na API", true);
+        }
       }).catch(e => { showTst("Sem conexão.", true); });
     }
 
     function fetchAction(action, payload, callback) {
-      document.getElementById('sync-status').style.display = 'block';
-      payload.action = action;
+      document.getElementById('sync-status').style.display = 'block'; payload.action = action;
       fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-      .then(r=>r.json()).then(d=>{
-        if(d.status==='success'){ if(callback)callback(d.data); refreshData(); } 
-        else showTst("Erro: "+d.msg, true);
-      }).catch(e=>{ showTst("Erro de Rede", true); });
+      .then(r=>r.json()).then(d=>{ if(d.status==='success'){ if(callback)callback(d.data); refreshData(); } else showTst("Erro", true); });
     }
 
-    // =====================================
-    // NAVEGAÇÃO E SENHA ADMIN
-    // =====================================
     function changeMode() {
       let m = document.getElementById('appMode').value;
       if(m === 'admin') {
         let p = prompt("Digite a Senha de Admin:");
-        if(p !== "1234voleidavila") { 
-          showTst("Senha Incorreta!", true); 
-          document.getElementById('appMode').value = 'public'; 
-          return; 
-        }
-        document.getElementById('view-public').classList.remove('active');
-        document.getElementById('view-admin').classList.add('active');
-      } else {
-        document.getElementById('view-admin').classList.remove('active');
-        document.getElementById('view-public').classList.add('active');
-      }
+        if(p !== "1234voleidavila") { showTst("Senha Incorreta!", true); document.getElementById('appMode').value = 'public'; return; }
+        document.getElementById('view-public').classList.remove('active'); document.getElementById('view-admin').classList.add('active');
+      } else { document.getElementById('view-admin').classList.remove('active'); document.getElementById('view-public').classList.add('active'); }
     }
 
     function switchAdminTab(t) {
       document.querySelectorAll('#view-admin > .view').forEach(e=>e.classList.remove('active'));
       document.querySelectorAll('.admin-nav button').forEach(e=>{e.style.background='transparent'; e.style.color='var(--primary)';});
       document.getElementById('admin-'+t).classList.add('active');
-      document.getElementById('tab-'+t).style.background = 'var(--primary)';
-      document.getElementById('tab-'+t).style.color = 'white';
-      
+      document.getElementById('tab-'+t).style.background = 'var(--primary)'; document.getElementById('tab-'+t).style.color = 'white';
       if(t === 'match' && !chartsInit) gerarGraficos();
     }
 
@@ -291,131 +269,99 @@
       sys.players.forEach(j => { let o = document.createElement('option'); o.value = j.nome; dl.appendChild(o); });
     }
 
-    // =====================================
-    // MODO PÚBLICO: RSVP (Apenas Lista Oficial)
-    // =====================================
+    // --- RSVP BLINDADO ANTI-DUPLO ---
     function renderizarPublicRsvp() {
-      // Filtra quem está na Lista Oficial (sys.roster) mas ainda não deu check-in
       let pendentes = sys.roster.filter(n => !sys.checkins.includes(n));
-      let sel = document.getElementById('publicSelectRsvp');
-      let btn = document.getElementById('btnConfirmarRsvp');
-      
+      let sel = document.getElementById('publicSelectRsvp'), btn = document.getElementById('btnConfirmarRsvp');
       sel.innerHTML = '<option value="">Selecione seu nome...</option>';
-      if(pendentes.length === 0) {
-        sel.innerHTML = '<option value="">Nenhum nome pendente.</option>';
-        sel.disabled = true; btn.disabled = true;
-      } else {
-        sel.disabled = false; btn.disabled = false;
-        pendentes.forEach(n => { sel.innerHTML += `<option value="${n}">${n}</option>`; });
-      }
+      if(pendentes.length === 0) { sel.innerHTML = '<option value="">Nenhum nome pendente.</option>'; sel.disabled = true; btn.disabled = true; } 
+      else { sel.disabled = false; btn.disabled = false; pendentes.forEach(n => { sel.innerHTML += `<option value="${n}">${n}</option>`; }); }
 
-      // Renderiza quem já confirmou
       let htmlConf = '';
       sys.checkins.forEach((nome, i) => {
         let j = sys.players.find(x => x.nome === nome);
-        if(j) htmlConf += `<div class="roster-item" onclick="abrirPlayerCard('${j.nome}')" style="cursor:pointer;"><span>${i+1}. ${j.isLevantador?'🟢':''}${j.isMulher?'🟣':''} ${j.nome}</span><span style="font-size:12px; color:#aaa;">${'⭐'.repeat(j.estrelas)}</span></div>`;
+        if(j) htmlConf += `<div class="roster-item"><span>${i+1}. ${j.isLevantador?'🟢':''}${j.isMulher?'🟣':''} ${j.nome}</span><span style="font-size:12px; color:#aaa;">${'⭐'.repeat(j.estrelas)}</span></div>`;
       });
-      let htmlVazio = '<div style="text-align:center; padding:10px;">Ninguém confirmou ainda.</div>';
-      document.getElementById('rsvpListPublic').innerHTML = htmlConf || htmlVazio;
-      document.getElementById('adminCheckinList').innerHTML = htmlConf || htmlVazio;
-      document.getElementById('rsvpCount').innerText = sys.checkins.length;
-      document.getElementById('adminDraftCount').innerText = sys.checkins.length;
+      document.getElementById('rsvpListPublic').innerHTML = htmlConf || '<div style="text-align:center; padding:10px;">Ninguém confirmou ainda.</div>';
+      document.getElementById('adminCheckinList').innerHTML = htmlConf || '<div style="text-align:center; padding:10px;">Ninguém confirmou ainda.</div>';
+      document.getElementById('rsvpCount').innerText = sys.checkins.length; document.getElementById('adminDraftCount').innerText = sys.checkins.length;
     }
 
     function fazerCheckin() {
       let nome = document.getElementById('publicSelectRsvp').value;
       if(!nome) { showTst("Selecione seu nome na lista!", true); return; }
+      if(sys.checkins.includes(nome)) { showTst("Você já confirmou.", true); return; }
+      
+      // Atualiza front imediatamente para sumir da lista
+      sys.checkins.push(nome);
+      renderizarPublicRsvp(); 
       fetchAction('rsvp', {nome: nome}, () => showTst("Presença Confirmada!"));
     }
 
-    // =====================================
-    // ADMIN: 1. CONVOCAÇÃO (Montar a Lista)
-    // =====================================
+    // --- CONVOCAÇÃO ADMIN ---
     function addRosterAdmin() {
-      let n = document.getElementById('adminBuscaNome').value.trim();
-      if(!n) return;
+      let n = document.getElementById('adminBuscaNome').value.trim(); if(!n) return;
       let j = sys.players.find(x => x.nome.toLowerCase() === n.toLowerCase());
-      if(!j) { showTst("Jogador não existe no Banco Global!", true); return; }
-      if(tempAdminRoster.includes(j.nome)) { showTst("Já está na lista de hoje.", true); return; }
-      tempAdminRoster.push(j.nome);
-      document.getElementById('adminBuscaNome').value = '';
-      renderizarAdminRoster();
+      if(!j) { showTst("Não encontrado!", true); return; }
+      if(tempAdminRoster.includes(j.nome)) { showTst("Já está na lista.", true); return; }
+      tempAdminRoster.push(j.nome); document.getElementById('adminBuscaNome').value = ''; renderizarAdminRoster();
     }
-
-    function remRosterAdmin(nome) {
-      tempAdminRoster = tempAdminRoster.filter(n => n !== nome);
-      renderizarAdminRoster();
-    }
-
+    function remRosterAdmin(n) { tempAdminRoster = tempAdminRoster.filter(x => x !== n); renderizarAdminRoster(); }
     function renderizarAdminRoster() {
       let c = document.getElementById('adminRosterBuildList'); c.innerHTML = '';
-      if(tempAdminRoster.length === 0) { c.innerHTML = '<div style="text-align:center; padding:10px;">Busque e adicione os convocados...</div>'; return; }
-      tempAdminRoster.forEach((nome, i) => {
-        c.innerHTML += `<div class="roster-item"><span>${i+1}. ${nome}</span><button class="btn-danger" onclick="remRosterAdmin('${nome}')">✖</button></div>`;
-      });
+      if(tempAdminRoster.length === 0) { c.innerHTML = '<div style="text-align:center; padding:10px;">Adicione nomes...</div>'; return; }
+      tempAdminRoster.forEach((n, i) => { c.innerHTML += `<div class="roster-item"><span>${i+1}. ${n}</span><button class="btn-danger" onclick="remRosterAdmin('${n}')">✖</button></div>`; });
     }
-
     function salvarListaOficial() {
       if(tempAdminRoster.length === 0) { showTst("A lista está vazia!", true); return; }
-      fetchAction('saveRoster', {roster: tempAdminRoster}, () => showTst("Lista Oficial Publicada! Pode enviar o link."));
+      fetchAction('saveRoster', {roster: tempAdminRoster}, () => showTst("Lista Oficial Publicada!"));
     }
-
     function limparDiaInteiro() {
-      if(confirm("ATENÇÃO: Isso vai zerar a Lista de Convocados e limpar quem já deu Check-in. Quer iniciar um novo dia?")) {
-        fetchAction('clearDay', {}, () => {
-          tempAdminRoster = [];
-          document.getElementById('arena-view').style.display = 'none';
-          showTst("Novo dia iniciado!");
-        });
-      }
+      if(confirm("Zerar Lista e Check-in?")) fetchAction('clearDay', {}, () => { tempAdminRoster = []; document.getElementById('arena-view').style.display = 'none'; showTst("Novo dia!"); });
     }
 
-    // =====================================
-    // ADMIN: 4. GESTÃO DO BANCO DE DADOS (CRUD)
-    // =====================================
+    // --- CADASTROS (CRUD) ---
     function salvarNovoJogador() {
       let d = { nome: document.getElementById('nomeCad').value.trim(), estrelas: parseInt(document.getElementById('estCad').value), isMulher: document.getElementById('sexoCad').value==='F', isLevantador: document.getElementById('levCad').value==='Sim', isConvidado: document.getElementById('tipoCad').value==='Convidado' };
       if(!d.nome){ showTst("Preencha o nome", true); return;}
-      document.getElementById('nomeCad').value='';
-      fetchAction('addPlayer', {dados: d}, () => showTst("Jogador Cadastrado no BD!"));
+      document.getElementById('nomeCad').value=''; fetchAction('addPlayer', {dados: d}, () => showTst("Cadastrado!"));
     }
-
     function renderizarAdminDB() {
       let c = document.getElementById('adminDBList'); c.innerHTML = '';
       let filter = document.getElementById('filterDB').value.toLowerCase();
       let list = sys.players.filter(j => j.nome.toLowerCase().includes(filter)).sort((a,b) => a.nome.localeCompare(b.nome));
       list.forEach(j => {
         c.innerHTML += `<div class="roster-item" style="font-size:14px; cursor:pointer;" onclick="abrirPlayerCard('${j.nome}')">
-          <span>${j.isLevantador?'🟢':''}${j.isMulher?'🟣':''} <b>${j.nome}</b> (${'⭐'.repeat(j.estrelas)}) <br><small style="color:#888;">${j.isConvidado?'Convidado':'Membro Fixo'}</small></span>
+          <span>${j.isLevantador?'🟢':''}${j.isMulher?'🟣':''} <b>${j.nome}</b> (${'⭐'.repeat(j.estrelas)}) <br><small style="color:#888;">${j.isConvidado?'Convidado':'Fixo'}</small></span>
         </div>`;
       });
     }
-
     function filtrarDB() { renderizarAdminDB(); }
-
     function deletarJogador(nome) {
-      if(confirm(`Tem certeza absoluta que deseja EXCLUIR "${nome}" do Banco de Dados?`)) {
+      if(confirm(`EXCLUIR "${playerSelecionadoModal.nome}" do Banco de Dados?`)) {
         document.getElementById('playerModal').style.display = 'none';
-        fetchAction('deletePlayer', {nome: nome}, () => showTst(`Jogador Excluído!`));
+        fetchAction('deletePlayer', {nome: playerSelecionadoModal.nome}, () => showTst(`Excluído!`));
       }
     }
+    function abrirPlayerCard(nome) {
+      playerSelecionadoModal = sys.players.find(x => x.nome === nome);
+      if(!playerSelecionadoModal) return;
+      document.getElementById('m-nome').innerText = playerSelecionadoModal.nome; document.getElementById('m-stars').innerText = '⭐'.repeat(playerSelecionadoModal.estrelas);
+      document.getElementById('playerModal').style.display = 'flex';
+    }
+    function closeModal(e) { if(e.target === document.getElementById('playerModal')) document.getElementById('playerModal').style.display = 'none'; }
 
-    // =====================================
-    // ALGORITMO DRAFT & ARENA
-    // =====================================
+    // --- ALGORITMO & ARENA & DRAG'N DROP ---
     function iniciarSorteio() {
       if(sys.checkins.length < 4) { showTst("Mínimo de 4 confirmados!", true); return; }
       let jogsAtivos = sys.checkins.slice(0, 24).map(n => sys.players.find(x => x.nome === n)).filter(x=>x);
-      
       let times = [[],[],[],[]], levs = jogsAtivos.filter(j=>j.isLevantador), muls = jogsAtivos.filter(j=>j.isMulher && !j.isLevantador), rest = jogsAtivos.filter(j=>!j.isLevantador && (!j.isMulher||(j.isMulher&&j.isLevantador))); 
       for(let i=0; i<4; i++) if(levs.length>0) times[i].push(levs.splice(Math.floor(Math.random()*levs.length),1)[0]);
       rest = [...rest, ...levs];
       muls.forEach(m => { let td = times.filter(t=>t.filter(j=>j.isMulher).length<2); if(td.length>0){ td.sort((a,b)=>a.reduce((s,j)=>s+j.estrelas,0)-b.reduce((s,j)=>s+j.estrelas,0)); times[times.indexOf(td[0])].push(m); } else rest.push(m); });
       rest.sort((a,b)=>b.estrelas-a.estrelas);
       rest.forEach(j => { times.sort((a,b)=>a.reduce((s,x)=>s+x.estrelas,0)-b.reduce((s,x)=>s+x.estrelas,0)); times[0].push(j); });
-      
       times = times.filter(t=>t.length>0);
-      
       let sum = t => t.reduce((s,j)=>s+j.estrelas,0);
       for(let i=0; i<10; i++){
         times.sort((a,b)=>sum(a)-sum(b)); let fr = times[0], fo = times[times.length-1];
@@ -425,111 +371,89 @@
           if(dPos < dPre){ let t = fr[jFr]; fr[jFr] = fo[jFo]; fo[jFo] = t; }
         }
       }
-      
-      sys.currentTeams = times;
-      renderizarArena();
+      sys.currentTeams = times; renderizarArena();
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-      
       fetchAction('saveDraft', {times: times}, (res)=>{ sys.lastDraftId = res.id; showTst("Sorteio salvo na nuvem!"); });
+    }
+
+    // Drag and Drop State
+    let dragT = null, dragP = null;
+    function dStart(e, t, p) { dragT = t; dragP = p; e.dataTransfer.setData('text/plain', ''); }
+    function dOver(e) { e.preventDefault(); }
+    function dDrop(e, targetT, targetP) {
+      e.preventDefault(); e.stopPropagation();
+      if(dragT === null || (dragT === targetT && dragP === targetP)) return;
+      let p1 = sys.currentTeams[dragT][dragP];
+      if(targetP !== null) { // Swap
+        let p2 = sys.currentTeams[targetT][targetP];
+        sys.currentTeams[dragT][dragP] = p2; sys.currentTeams[targetT][targetP] = p1;
+      } else { // Append
+        if(sys.currentTeams[targetT].length >= 6) { showTst("Time cheio!", true); return; }
+        sys.currentTeams[dragT].splice(dragP, 1); sys.currentTeams[targetT].push(p1);
+      }
+      dragT = null; dragP = null; renderizarArena();
     }
 
     function renderizarArena() {
       document.getElementById('arena-view').style.display = 'block';
       let c = document.getElementById('resultado-container'); c.innerHTML='';
-      
       sys.currentTeams.forEach((time, idx) => {
-        let tOrd = [...time.filter(j=>j.isLevantador), ...time.filter(j=>j.isMulher && !j.isLevantador), ...time.filter(j=>!j.isLevantador && !j.isMulher)];
         let card = document.createElement('div'); card.className = 'time-card';
         let s = time.reduce((acc,j)=>acc+j.estrelas,0);
-        
         let html = `<div class="time-title">Time ${idx+1} <span style="color:#ffd700;">⭐ ${s}</span></div>`;
-        tOrd.forEach(j => {
+        html += `<div class="drop-zone" ondragover="dOver(event)" ondrop="dDrop(event, ${idx}, null)">`;
+        time.forEach((j, jIdx) => {
           let rank = `rank-${j.estrelas}`; let lbl = j.isLevantador ? `<span class="pos-lev">Lev</span>` : (j.isMulher ? `<span class="pos-mul">Mul</span>` : '');
-          html += `<div class="player-card ${rank}" onclick="abrirPlayerCard('${j.nome}')"><span>${lbl} ${j.nome}</span><span>${'⭐'.repeat(j.estrelas)}</span></div>`;
+          html += `<div class="player-card ${rank}" draggable="true" ondragstart="dStart(event, ${idx}, ${jIdx})" ondragover="dOver(event)" ondrop="dDrop(event, ${idx}, ${jIdx})">
+            <span>${lbl} ${j.nome}</span><span>${'⭐'.repeat(j.estrelas)}</span>
+          </div>`;
         });
-        card.innerHTML = html; c.appendChild(card);
+        html += `</div>`; card.innerHTML = html; c.appendChild(card);
       });
-      
       if(sys.checkins.length > 24) {
-        let htmlEsp = '';
-        for(let i=24; i<sys.checkins.length; i++) htmlEsp += `<div>⏳ ${sys.checkins[i]}</div>`;
+        let htmlEsp = ''; for(let i=24; i<sys.checkins.length; i++) htmlEsp += `<div>⏳ ${sys.checkins[i]}</div>`;
         document.getElementById('filaEsperaContainer').innerHTML = htmlEsp;
-      } else {
-        document.getElementById('filaEsperaContainer').innerHTML = "Ninguém na fila.";
-      }
+      } else { document.getElementById('filaEsperaContainer').innerHTML = "Ninguém na fila."; }
+    }
+
+    function exportarWhatsApp() {
+      let txt = "🏐 *DRAFT DO DIA* 🏐\n\n";
+      sys.currentTeams.forEach((t, i) => {
+        txt += `*Time ${i+1}* (⭐ ${t.reduce((a,j)=>a+j.estrelas,0)})\n`;
+        t.forEach(j => { txt += `${j.isLevantador?'🟢':(j.isMulher?'🟣':'🔵')} ${j.nome}\n`; });
+        txt += `\n`;
+      });
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`, '_blank');
     }
 
     function alocarAtrasados() {
-      if(sys.checkins.length <= 24) { showTst("Não há atrasados.", true); return; }
-      if(sys.currentTeams.length === 0) return;
-      
+      if(sys.checkins.length <= 24) return;
       let alloc = false;
       for(let i=24; i<sys.checkins.length; i++) {
         let j = sys.players.find(x => x.nome === sys.checkins[i]);
         if(!j) continue;
         sys.currentTeams.sort((a,b) => a.length - b.length);
-        if(sys.currentTeams[0].length < 6) {
-          sys.currentTeams[0].push(j); alloc = true;
-          sys.checkins.splice(i, 1); i--;
-        }
+        if(sys.currentTeams[0].length < 6) { sys.currentTeams[0].push(j); alloc = true; sys.checkins.splice(i, 1); i--; }
       }
-      if(alloc) { renderizarArena(); renderizarPublicRsvp(); showTst("Atrasados realocados no menor time!"); } 
-      else showTst("Todos os times já estão com 6 jogadores.", true);
+      if(alloc) { renderizarArena(); renderizarPublicRsvp(); showTst("Atrasados realocados!"); } 
     }
 
-    // =====================================
-    // PLAYER CARD & VITÓRIAS & ANALYTICS
-    // =====================================
     function registrarVitoria(lado) {
-      if(!sys.lastDraftId) { showTst("Sorteie os times primeiro.", true); return; }
+      if(!sys.lastDraftId) { showTst("Sorteie primeiro.", true); return; }
       let ta = document.getElementById('timeA').value, tb = document.getElementById('timeB').value;
-      if(ta === tb) { showTst("Times iguais!", true); return; }
+      if(ta === tb) return;
       let ven = lado === 'A' ? ta : tb, per = lado === 'A' ? tb : ta;
-      
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      fetchAction('saveMatch', {draftId: sys.lastDraftId, vencedor: ven, perdedor: per}, ()=> showTst(`Vitória do ${ven} registrada!`));
+      fetchAction('saveMatch', {draftId: sys.lastDraftId, vencedor: ven, perdedor: per}, ()=> showTst(`Vitória do ${ven}!`));
     }
-
-    function abrirPlayerCard(nome) {
-      playerSelecionadoModal = sys.players.find(x => x.nome === nome);
-      if(!playerSelecionadoModal) return;
-      
-      document.getElementById('m-nome').innerText = playerSelecionadoModal.nome;
-      document.getElementById('m-stars').innerText = '⭐'.repeat(playerSelecionadoModal.estrelas);
-      
-      let jogosTotais = 0; let vitorias = 0; let parceiros = {};
-      sys.history.forEach(row => {
-        let t = [row[3],row[4],row[5],row[6],row[7],row[8]];
-        if(t.includes(nome)) {
-          jogosTotais++;
-          let nomeTimeDraft = row[0]; let idDraft = row[1];
-          let won = sys.matches.some(m => m[0] === idDraft && m[1] === nomeTimeDraft);
-          if(won) vitorias++;
-          t.forEach(p => { if(p && p !== nome) parceiros[p] = (parceiros[p]||0)+1; });
-        }
-      });
-      
-      document.getElementById('m-games').innerText = jogosTotais;
-      document.getElementById('m-wins').innerText = jogosTotais > 0 ? Math.round((vitorias/jogosTotais)*100)+'%' : '0%';
-      let bestDuo = Object.keys(parceiros).sort((a,b)=>parceiros[b]-parceiros[a])[0];
-      document.getElementById('m-duo').innerText = bestDuo ? `${bestDuo} (${parceiros[bestDuo]}x)` : 'Ninguém';
-
-      document.getElementById('playerModal').style.display = 'flex';
-    }
-
-    function closeModal(e) { if(e.target === document.getElementById('playerModal')) document.getElementById('playerModal').style.display = 'none'; }
 
     function gerarGraficos() {
-      if(sys.history.length === 0) return;
-      chartsInit = true;
-      let presencas = {};
-      sys.history.forEach(r => { let t = [r[3],r[4],r[5],r[6],r[7],r[8]].filter(x=>x); t.forEach(j => presencas[j] = (presencas[j]||0)+1); });
+      if(sys.history.length === 0) return; chartsInit = true;
+      let presencas = {}; sys.history.forEach(r => { let t = [r[3],r[4],r[5],r[6],r[7],r[8]].filter(x=>x); t.forEach(j => presencas[j] = (presencas[j]||0)+1); });
       let topPres = Object.keys(presencas).map(k=>[k, presencas[k]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
-
       if(window.chObj) window.chObj.destroy();
       window.chObj = new Chart(document.getElementById('presChart'), {
-        type: 'bar',
-        data: { labels: topPres.map(x=>x[0]), datasets: [{ label: 'Assiduidade (Top 5)', data: topPres.map(x=>x[1]), backgroundColor: '#ff6b6b' }] },
+        type: 'bar', data: { labels: topPres.map(x=>x[0]), datasets: [{ label: 'Top 5', data: topPres.map(x=>x[1]), backgroundColor: '#ff6b6b' }] },
         options: { color: '#fff', scales: { y: { ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } }
       });
     }
