@@ -5,63 +5,47 @@
   <title>Vôlei Draft PRO 3.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
-  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
   <style>
     :root { --bg: #121212; --card: #1e1e1e; --primary: #ff6b6b; --text: #f0f0f0; --success: #4CAF50; --danger: #E91E63; }
     body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    
     .header-logo { text-align: center; margin-bottom: 20px; }
     .header-logo img { width: 70px; filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.5)); }
-    .header-logo h1 { margin: 5px 0 0 0; font-size: 20px; color: var(--text); }
-    
     .mode-switch { text-align: center; margin-bottom: 20px; }
     .mode-switch select { width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; background: #333; color: white; border: 1px solid var(--primary); font-weight: bold;}
-
     .view { display: none; } .view.active { display: block; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
     .section-card { background: var(--card); padding: 15px; border-radius: 16px; border: 1px solid #333; margin-bottom: 20px; }
     .section-title { font-size: 16px; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 0; margin-bottom: 15px; }
-    
     input, select, button { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: none; font-size: 15px; }
     input, select { background: #2a2a2a; color: var(--text); border: 1px solid #444; }
     button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     .btn-success { background: var(--success); } .btn-danger { background: var(--danger); }
-    .btn-warning { background: #ff9800; color: #fff;}
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-
     .roster-list { max-height: 400px; overflow-y: auto; background: #2a2a2a; border-radius: 12px; padding: 10px; border: 1px solid #444; }
     .roster-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; font-size: 14px; cursor: pointer;}
-    .roster-item:active { background: #333; }
-    
     .arena-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
     @media (min-width: 1024px) { .arena-grid { grid-template-columns: repeat(2, 1fr); } }
-
-    .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); }
+    .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); margin-bottom: 15px;}
     .time-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 5px;}
-    
     .radar-container { width: 100%; height: 180px; margin: 10px 0; }
     .player-card { display: flex; justify-content: space-between; padding: 8px; margin-bottom: 5px; border-radius: 8px; border-left: 4px solid #555; background: #1a1a1a; font-size: 13px;}
     .rank-1 { border-left-color: #cd7f32; } .rank-2 { border-left-color: #c0c0c0; } .rank-3 { border-left-color: #ffd700; } .rank-4 { border-left-color: #00ffff; }
-    
     .admin-nav { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; }
     .admin-nav button { padding: 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; margin-bottom: 0; flex-shrink: 0;}
-
     #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 30px; display: none; z-index: 9999; font-weight: bold;}
     .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
-    .modal-content { background: var(--card); padding: 20px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; border: 1px solid #444;}
+    .modal-content { background: var(--card); padding: 20px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; border: 1px solid #444; }
     .stat-box { display: flex; justify-content: space-between; padding: 10px; background: #111; border-radius: 8px; margin-bottom: 5px; font-size: 14px;}
   </style>
 </head>
 <body>
 
   <script> const API_URL = "https://script.google.com/macros/s/AKfycbyiHsW3_Az5baGCnYXUvoOxyZIz9xfwc_qmVIx2X9DD5a2WndPBa1t164QxCQfNvqL-/exec"; </script>
+
   <div id="toast">Sucesso!</div>
   <div class="header-logo"><img src="https://cdn-icons-png.flaticon.com/512/5402/5402396.png"><h1>Vôlei PRO 3.5</h1></div>
 
@@ -86,74 +70,62 @@
       <button onclick="switchAdminTab('roster')" class="btn-outline" style="background:var(--primary); color:white;" id="tab-roster">1. Convocação</button>
       <button onclick="switchAdminTab('draft')" class="btn-outline" id="tab-draft">2. Draft/Arena</button>
       <button onclick="switchAdminTab('match')" class="btn-outline" id="tab-match">3. Partidas</button>
-      <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Banco (Gerenciar)</button>
+      <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Banco</button>
     </div>
 
     <div id="admin-roster" class="view active">
       <div class="section-card">
-        <h2 class="section-title">Lista de Convocados</h2>
-        <input type="text" id="adminBuscaNome" list="listaGlobal" placeholder="Buscar no banco...">
+        <h2 class="section-title">Montar Lista</h2>
+        <input type="text" id="adminBuscaNome" list="listaGlobal" placeholder="Buscar...">
         <datalist id="listaGlobal"></datalist>
-        <button onclick="addRosterAdmin()">Adicionar à Lista</button>
-        <div class="roster-list" id="adminRosterBuildList" style="margin: 10px 0;"></div>
-        <button onclick="salvarListaOficial()" class="btn-success">☁️ Publicar Lista Oficial</button>
-        <button onclick="limparDiaInteiro()" class="btn-outline" style="color:var(--danger); border-color:var(--danger);">🗑️ Zerar Dia</button>
+        <button onclick="addRosterAdmin()">Adicionar</button>
+        <div class="roster-list" id="adminRosterBuildList"></div>
+        <button onclick="salvarListaOficial()" class="btn-success">☁️ Salvar na Nuvem</button>
+        <button onclick="limparDiaInteiro()" class="btn-outline" style="color:var(--danger)">🗑️ Zerar Dia</button>
       </div>
     </div>
 
     <div id="admin-draft" class="view">
-      <div class="section-card">
-        <h2 class="section-title">Gerar Times</h2>
-        <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
-      </div>
+      <div class="section-card"><button onclick="iniciarSorteio()">🎰 Rodar Sorteio</button></div>
       <div id="arena-view" style="display:none;">
         <div class="arena-grid" id="resultado-container"></div>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-           <button onclick="registrarVitoria('A')" class="btn-success">🏆 Venceu Esq.</button>
-           <button onclick="registrarVitoria('B')" class="btn-success">🏆 Venceu Dir.</button>
-        </div>
+        <div style="display:flex; gap:10px;"><button onclick="registrarVitoria('A')" class="btn-success">🏆 Venceu Esq.</button><button onclick="registrarVitoria('B')" class="btn-success">🏆 Venceu Dir.</button></div>
         <button onclick="exportarWhatsApp()" class="btn-outline" style="margin-top:10px;">📲 WhatsApp</button>
       </div>
     </div>
 
     <div id="admin-match" class="view">
-      <div class="section-card"><h2 class="section-title">📊 Analytics Temporada</h2><canvas id="presChart"></canvas></div>
+      <div class="section-card"><h2 class="section-title">📊 Analytics</h2><canvas id="presChart"></canvas></div>
     </div>
 
     <div id="admin-cad" class="view">
       <div class="section-card">
         <h2 class="section-title">➕ Novo Cadastro</h2>
-        <input type="text" id="nomeCad" placeholder="Nome completo">
+        <input type="text" id="nomeCad" placeholder="Nome">
         <select id="estCad"><option value="1">1 Estrela</option><option value="2">2 Estrelas</option><option value="3" selected>3 Estrelas</option><option value="4">4 Estrelas</option></select>
         <select id="sexoCad"><option value="M">Masculino</option><option value="F">Feminino</option></select>
         <select id="levCad"><option value="Nao">Normal</option><option value="Sim">Levantador</option></select>
-        <button onclick="salvarNovoJogador()" class="btn-success">Cadastrar no Banco</button>
+        <button onclick="salvarNovoJogador()" class="btn-success">Cadastrar</button>
       </div>
-      <div class="section-card">
-        <h2 class="section-title">👥 Jogadores Cadastrados (Clique para Gerenciar)</h2>
-        <input type="text" id="filtroBanco" placeholder="Filtrar por nome..." onkeyup="renderAdminDB()">
-        <div class="roster-list" id="adminDBList" style="margin-top:10px;"></div>
-      </div>
+      <div class="section-card"><input type="text" id="filtroBanco" placeholder="Filtrar..." onkeyup="renderAdminDB()"><div class="roster-list" id="adminDBList"></div></div>
     </div>
   </div>
 
   <div class="modal-overlay" id="playerModal" onclick="closeModal(event)">
     <div class="modal-content">
-      <h2 id="m-nome">Nome</h2>
-      <div id="m-stars" style="font-size:20px; margin-bottom:15px;"></div>
+      <h2 id="m-nome">Nome</h2><div id="m-stars"></div>
       <div class="stat-box">Win Rate: <strong id="m-wins">0%</strong></div>
-      <div class="stat-box">Faltas: <strong id="m-faltas" style="color:var(--danger)">0</strong></div>
-      
-      <button class="btn-warning" onclick="registrarFalta()" style="margin-top:15px;">📉 Registrar Falta</button>
-      <button class="btn-danger" onclick="excluirJogadorDoBanco()" style="margin-top:10px;">🗑️ EXCLUIR DO BANCO</button>
-      <button class="btn-outline" onclick="document.getElementById('playerModal').style.display='none'" style="margin-top:10px;">Fechar</button>
+      <div class="stat-box">Faltas: <strong id="m-faltas">0</strong></div>
+      <div class="stat-box">Nêmesis: <strong id="m-nemesis">-</strong></div>
+      <button class="btn-warning" onclick="registrarFalta()">📉 Registrar Falta</button>
+      <button class="btn-danger" onclick="excluirJogadorDoBanco()">🗑️ EXCLUIR DEFINITIVO</button>
+      <button class="btn-outline" onclick="document.getElementById('playerModal').style.display='none'">Fechar</button>
     </div>
   </div>
 
   <script>
     let sys = { players: [], roster: [], checkins: [], history: [], matches: [], absences: [], currentTeams: [] };
-    let tempAdminRoster = [];
-    let reiDaQuadra = { emQuadra: [0, 1], fila: [2, 3], vitsVencedor: 0, ultimoVencedor: null };
+    let tempAdminRoster = []; let reiDaQuadra = { emQuadra: [0, 1], fila: [2, 3], vitsVencedor: 0, ultimoVencedor: null };
     let playerSelecionadoModal = null;
 
     const showTst = (m, err=false) => { let t=document.getElementById('toast'); t.innerText=m; t.style.background=err?'var(--danger)':'var(--success)'; t.style.display='block'; setTimeout(()=>t.style.display='none', 2500); };
@@ -162,52 +134,37 @@
 
     function refreshData() {
       fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
-      .then(r => r.json()).then(d => {
-        if(d.status === 'success') {
-          sys = d.data; tempAdminRoster = [...sys.roster];
-          renderAll();
-        }
-      });
+      .then(r => r.json()).then(d => { if(d.status === 'success') { sys = d.data; tempAdminRoster = [...sys.roster]; renderAll(); } });
     }
 
-    function fetchActionAsync(action, payload) {
-      payload.action = action;
-      return fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-    }
-
-    function renderAll() {
-      popularDatalist(); renderPublic(); renderAdminRoster(); renderAdminDB();
-    }
+    function renderAll() { popularDatalist(); renderPublic(); renderAdminRoster(); renderAdminDB(); }
 
     function popularDatalist() {
       let dl = document.getElementById('listaGlobal'); dl.innerHTML='';
       sys.players.forEach(j => { let o = document.createElement('option'); o.value = j.nome; dl.appendChild(o); });
     }
 
-    // MODO JOGADOR
     function renderPublic() {
       let pends = sys.roster.filter(n => !sys.checkins.includes(n));
       let sel = document.getElementById('publicSelectRsvp'), btn = document.getElementById('btnConfirmarRsvp');
       sel.innerHTML = '<option value="">Selecione seu nome...</option>';
       pends.forEach(n => sel.innerHTML += `<option value="${n}">${n}</option>`);
       sel.disabled = pends.length === 0; btn.disabled = pends.length === 0;
-      
       let html = '';
       sys.checkins.forEach((n, i) => {
         let j = sys.players.find(x => x.nome === n);
         if(j) html += `<div class="roster-item" onclick="abrirCard('${j.nome}')"><span>${i+1}. ${j.nome}</span><span>${'⭐'.repeat(j.estrelas)}</span></div>`;
       });
-      document.getElementById('rsvpListPublic').innerHTML = html || 'Ninguém ainda.';
+      document.getElementById('rsvpListPublic').innerHTML = html || 'Vazio.';
       document.getElementById('rsvpCount').innerText = sys.checkins.length;
     }
 
     function fazerCheckin() {
-      let n = document.getElementById('publicSelectRsvp').value;
-      if(!n) return; sys.checkins.push(n); renderPublic(); showTst("Confirmado!");
-      fetchActionAsync('rsvp', {nome: n});
+      let n = document.getElementById('publicSelectRsvp').value; if(!n) return;
+      sys.checkins.push(n); renderPublic(); showTst("Confirmado!");
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'rsvp', nome: n}) });
     }
 
-    // ADMIN TABS
     function changeMode() {
       let m = document.getElementById('appMode').value;
       if(m === 'admin' && prompt("Senha:") !== "1234voleidavila") { document.getElementById('appMode').value = 'public'; return; }
@@ -221,49 +178,47 @@
       if(t === 'match') gerarGraficos();
     }
 
-    // CONVOCAÇÃO
     function addRosterAdmin() {
       let n = document.getElementById('adminBuscaNome').value;
       if(n && !tempAdminRoster.includes(n)) { tempAdminRoster.push(n); renderAdminRoster(); }
       document.getElementById('adminBuscaNome').value = '';
     }
+
     function renderAdminRoster() {
       let c = document.getElementById('adminRosterBuildList'); c.innerHTML = '';
       tempAdminRoster.forEach(n => c.innerHTML += `<div class="roster-item">${n} <button class="btn-danger" onclick="tempAdminRoster=tempAdminRoster.filter(x=>x!=='${n}');renderAdminRoster()">✖</button></div>`);
     }
+
     function salvarListaOficial() {
-      sys.roster = [...tempAdminRoster]; renderPublic(); showTst("Publicado!");
-      fetchActionAsync('saveRoster', {roster: sys.roster});
-    }
-    function limparDiaInteiro() {
-       if(confirm("Zerar tudo?")) { sys.roster=[]; sys.checkins=[]; tempAdminRoster=[]; renderAll(); fetchActionAsync('clearDay', {}); }
+      sys.roster = [...tempAdminRoster]; renderPublic(); showTst("Salvo!");
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'saveRoster', roster: sys.roster}) });
     }
 
-    // CADASTROS
+    function limparDiaInteiro() {
+      if(confirm("Limpar tudo?")) { sys.roster=[]; sys.checkins=[]; tempAdminRoster=[]; renderAll(); fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'clearDay'}) }); }
+    }
+
     function salvarNovoJogador() {
-      let d = { nome: document.getElementById('nomeCad').value.trim(), estrelas: parseInt(document.getElementById('estCad').value), isMulher: document.getElementById('sexoCad').value==='F', isLevantador: document.getElementById('levCad').value==='Sim', isConvidado: false };
-      if(!d.nome){ showTst("Preencha o nome", true); return;}
-      sys.players.push(d); popularDatalist(); renderAdminDB(); showTst("Cadastrado!"); document.getElementById('nomeCad').value='';
-      fetchActionAsync('addPlayer', {dados: d});
+      let n = document.getElementById('nomeCad').value.trim(); if(!n) return;
+      let d = { nome: n, estrelas: parseInt(document.getElementById('estCad').value), isMulher: document.getElementById('sexoCad').value === 'F', isLevantador: document.getElementById('levCad').value === 'Sim', isConvidado: false };
+      sys.players.push(d); renderAdminDB(); popularDatalist();
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'addPlayer', dados: d}) });
+      document.getElementById('nomeCad').value = ''; showTst("OK!");
     }
 
     function renderAdminDB() {
       let c = document.getElementById('adminDBList'); c.innerHTML = '';
-      let filtro = document.getElementById('filtroBanco').value.toLowerCase();
-      sys.players.filter(p => p.nome.toLowerCase().includes(filtro))
-      .sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(j => {
+      let f = document.getElementById('filtroBanco').value.toLowerCase();
+      sys.players.filter(p => p.nome.toLowerCase().includes(f)).sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(j => {
         c.innerHTML += `<div class="roster-item" onclick="abrirCard('${j.nome}')"><b>${j.nome}</b> <span>${'⭐'.repeat(j.estrelas)}</span></div>`;
       });
     }
 
-    // SORTEIO IA
     function iniciarSorteio() {
       if(sys.checkins.length < 4) return showTst("Mínimo 4!", true);
       let jogs = sys.checkins.slice(0,24).map(n => sys.players.find(p=>p.nome===n)).filter(x=>x);
-      
       let times = [[],[],[],[]];
       let levs = jogs.filter(j=>j.isLevantador), muls = jogs.filter(j=>j.isMulher && !j.isLevantador), rest = jogs.filter(j=>!j.isLevantador && (!j.isMulher||(j.isMulher&&j.isLevantador)));
-      
       for(let i=0; i<4; i++) if(levs.length>0) times[i].push(levs.splice(Math.floor(Math.random()*levs.length),1)[0]);
       rest = [...rest, ...levs];
       muls.forEach(m => { 
@@ -271,11 +226,10 @@
         if(td.length>0){ td.sort((a,b)=>sumEst(a)-sumEst(b)); times[times.indexOf(td[0])].push(m); } else rest.push(m); 
       });
       rest.sort((a,b)=>b.estrelas-a.estrelas).forEach(j => { times.sort((a,b)=>sumEst(a)-sumEst(b)); times[0].push(j); });
-      
       sys.currentTeams = times.filter(t=>t.length>0);
-      reiDaQuadra = { emQuadra: [0, 1], fila: sys.currentTeams.length > 2 ? [2, 3].slice(0, sys.currentTeams.length-2) : [], vitsVencedor: 0 };
+      reiDaQuadra = { emQuadra: [0, 1], fila: sys.currentTeams.length > 2 ? [2, 3].slice(0, sys.currentTeams.length-2) : [], vitsVencedor: 0, ultimoVencedor: null };
       renderArena();
-      fetchActionAsync('saveDraft', {times: sys.currentTeams});
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'saveDraft', times: sys.currentTeams}) });
     }
 
     const sumEst = t => t.reduce((s,j)=>s+j.estrelas,0);
@@ -283,7 +237,7 @@
     function renderArena() {
       document.getElementById('arena-view').style.display = 'block';
       let c = document.getElementById('resultado-container'); c.innerHTML='';
-      reiDaQuadra.emQuadra.forEach((tIdx, side) => {
+      reiDaQuadra.emQuadra.forEach((tIdx) => {
         if(tIdx === undefined) return;
         let t = sys.currentTeams[tIdx];
         let card = document.createElement('div'); card.className = 'time-card';
@@ -296,17 +250,16 @@
     }
 
     function registrarVitoria(lado) {
-      let v_idx = reiDaQuadra.emQuadra[lado === 'A' ? 0 : 1];
-      let p_idx = reiDaQuadra.emQuadra[lado === 'A' ? 1 : 0];
-      if(reiDaQuadra.ultimoVencedor === v_idx) reiDaQuadra.vitsVencedor++;
-      else { reiDaQuadra.ultimoVencedor = v_idx; reiDaQuadra.vitsVencedor = 1; }
-      if(reiDaQuadra.vitsVencedor >= 2) {
-        reiDaQuadra.fila.push(v_idx); reiDaQuadra.fila.push(p_idx);
-        reiDaQuadra.vitsVencedor = 0; reiDaQuadra.ultimoVencedor = null;
-      } else { reiDaQuadra.fila.push(p_idx); }
+      let v = reiDaQuadra.emQuadra[lado === 'A' ? 0 : 1];
+      let p = reiDaQuadra.emQuadra[lado === 'A' ? 1 : 0];
+      if(reiDaQuadra.ultimoVencedor === v) reiDaQuadra.vitsVencedor++; else { reiDaQuadra.ultimoVencedor = v; reiDaQuadra.vitsVencedor = 1; }
+      if(reiDaQuadra.vitsVencedor >= 2) { 
+        reiDaQuadra.fila.push(v); reiDaQuadra.fila.push(p); 
+        reiDaQuadra.vitsVencedor = 0; reiDaQuadra.ultimoVencedor = null; 
+      } else { reiDaQuadra.fila.push(p); }
       reiDaQuadra.emQuadra = [reiDaQuadra.ultimoVencedor ?? reiDaQuadra.fila.shift(), reiDaQuadra.fila.shift()].filter(x=>x!==undefined);
       renderArena();
-      fetchActionAsync('saveMatch', {vencedor: "Time "+(v_idx+1), perdedor: "Time "+(p_idx+1), jogadoresVencedores: sys.currentTeams[v_idx].map(j=>j.nome)});
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'saveMatch', draftId: 'WEB', vencedor: "Time "+(v+1), perdedor: "Time "+(p+1)}) });
     }
 
     function drawRadar(id, t) {
@@ -317,7 +270,6 @@
       });
     }
 
-    // MODAL E GERENCIAMENTO
     function abrirCard(n) {
       playerSelecionadoModal = sys.players.find(p=>p.nome===n);
       document.getElementById('m-nome').innerText = n;
@@ -327,35 +279,36 @@
     }
 
     function registrarFalta() {
-      let n = playerSelecionadoModal.nome;
-      sys.absences.push([n, new Date().toLocaleString()]);
+      let n = playerSelecionadoModal.nome; sys.absences.push([n]);
       document.getElementById('m-faltas').innerText = sys.absences.filter(f=>f[0]===n).length;
-      fetchActionAsync('registerAbsence', {nome: n});
-      showTst("Falta gravada.");
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'registerAbsence', nome: n}) });
+      showTst("Falta!");
     }
 
     function excluirJogadorDoBanco() {
-      if(confirm(`Tem certeza que deseja EXCLUIR DEFINITIVAMENTE ${playerSelecionadoModal.nome} do banco de dados?`)) {
-        let n = playerSelecionadoModal.nome;
-        sys.players = sys.players.filter(p => p.nome !== n);
-        renderAdminDB();
-        popularDatalist();
-        fetchActionAsync('deletePlayer', {nome: n});
-        document.getElementById('playerModal').style.display = 'none';
-        showTst("Jogador removido do sistema.");
+      if(confirm("Deletar jogador?")) {
+        let n = playerSelecionadoModal.nome; sys.players = sys.players.filter(p => p.nome !== n); renderAdminDB();
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'deletePlayer', nome: n}) });
+        document.getElementById('playerModal').style.display = 'none'; showTst("Deletado!");
       }
     }
 
     function closeModal(e) { if(e.target === document.getElementById('playerModal')) document.getElementById('playerModal').style.display = 'none'; }
 
     function exportarWhatsApp() {
-      let txt = "🏐 *DRAFT PRO* 🏐\n\n";
+      let txt = "🏐 *DRAFT PRO 3.5* 🏐\n\n";
       sys.currentTeams.forEach((t, i) => {
         txt += `*Time ${i+1}* (⭐${sumEst(t)})\n`;
-        t.forEach(j => txt += `- ${j.nome}\n`);
-        txt += "\n";
+        t.forEach(j => txt += `- ${j.nome}\n`); txt += "\n";
       });
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`);
+    }
+
+    function gerarGraficos() {
+      let pres = {}; sys.history.forEach(r => { [r[3],r[4],r[5],r[6],r[7],r[8]].forEach(j => { if(j) pres[j] = (pres[j]||0)+1; }); });
+      let top = Object.keys(pres).map(k=>[k, pres[k]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      if(window.ch) window.ch.destroy();
+      window.ch = new Chart(document.getElementById('presChart'), { type:'bar', data:{ labels:top.map(x=>x[0]), datasets:[{label:'Jogos', data:top.map(x=>x[1]), backgroundColor:'#ff6b6b'}]}, options:{ color:'#fff'} });
     }
   </script>
 </body>
