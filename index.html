@@ -48,7 +48,18 @@
     .roster-list { max-height: 400px; overflow-y: auto; background: #2a2a2a; border-radius: 12px; padding: 10px; border: 1px solid #444; }
     .roster-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; font-size: 14px; cursor: pointer;}
     .roster-item-confirmado { background: #1a3d1a; }
-    .checkin-button { background: var(--success); color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; margin-left: 10px; }
+    .checkin-button { 
+      background: var(--success); 
+      color: white; 
+      border: none; 
+      border-radius: 8px; 
+      padding: 5px 10px; 
+      font-size: 12px; 
+      cursor: pointer; 
+      margin-left: 10px; 
+      width: auto; 
+      flex-shrink: 0;
+    }
     
     .arena-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
     @media (min-width: 1024px) { .arena-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -364,7 +375,9 @@
 
   function fazerCheckin(nome) {
     if (!nome) return;
+    console.log("Fazendo check-in de:", nome);
     sys.checkins.push(nome);
+    console.log("Agora sys.checkins tem", sys.checkins.length, "itens:", sys.checkins);
     renderPublic();
     showTst("Confirmado!");
     fetchActionAsync('rsvp', {nome: nome});
@@ -573,8 +586,9 @@
   }
 
   function iniciarSorteio() {
+    console.log("Iniciando sorteio. Confirmados:", sys.checkins.length, sys.checkins);
     if (sys.checkins.length < 4) {
-      showTst("Erro: Mínimo de 4 confirmados!", true);
+      showTst("Erro: Mínimo de 4 confirmados! Atual: " + sys.checkins.length, true);
       return;
     }
 
