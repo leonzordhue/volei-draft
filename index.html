@@ -31,14 +31,12 @@
     
     input, select, button { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: none; font-size: 15px; }
     input, select { background: #2a2a2a; color: var(--text); border: 1px solid #444; }
-    button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-success { background: var(--success); } 
-    .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
+    button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+    .btn-success { background: var(--success); } .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
     .btn-warning { background: #ff9800; color: #fff;}
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
     .btn-small { padding: 8px; font-size: 13px; }
-    .btn-refresh { background: #3498db; margin-top: 10px; }
+    .btn-refresh { background: #2196f3; }
 
     .autocomplete-container { position: relative; width: 100%; margin-bottom: 12px; }
     .autocomplete-list { position: absolute; z-index: 9999; background: #2a2a2a; width: 100%; max-height: 220px; overflow-y: auto; border: 1px solid #ff6b6b; border-radius: 8px; left: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -52,7 +50,6 @@
     .roster-item-confirmado { background: #1a3d1a; }
     .checkin-button { background: var(--success); color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; margin-left: 10px; width: auto; flex-shrink: 0; }
     
-    /* Arena em grid 2x2 para desktop */
     .arena-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -93,7 +90,6 @@
     .edit-field input, .edit-field select { background: #333; border: 1px solid #555; }
     .checkbox-group { display: flex; justify-content: space-around; }
 
-    /* Switch para modo competitivo */
     .competitive-switch {
       display: flex;
       align-items: center;
@@ -113,18 +109,6 @@
       height: 20px;
       margin: 0;
     }
-
-    /* Loading spinner */
-    .spinner {
-      border: 4px solid rgba(255,255,255,0.1);
-      border-left-color: var(--primary);
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -159,6 +143,7 @@
     <button onclick="switchAdminTab('draft')" class="btn-outline" id="tab-draft">2. Draft/Arena</button>
     <button onclick="switchAdminTab('match')" class="btn-outline" id="tab-match">3. Partidas</button>
     <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Banco</button>
+    <button onclick="refreshData()" class="btn-outline btn-refresh" style="color:white; background:#2196f3;">🔄 Atualizar Dados</button>
   </div>
 
   <!-- Aba Convocação -->
@@ -180,11 +165,6 @@
     <div class="section-card">
       <h2 class="section-title">Gerar Times (<span id="adminDraftCount">0</span>)</h2>
       <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
-      <button onclick="refreshData()" class="btn-refresh btn-outline" style="margin-top:10px;">🔄 Atualizar Dados</button>
-      <div id="loadingIndicator" style="display:none; text-align:center;">
-        <div class="spinner"></div>
-        <p>Processando...</p>
-      </div>
     </div>
     <div id="arena-view" style="display:none;">
       <!-- Grade 2x2 automática via CSS -->
@@ -438,10 +418,7 @@
     }
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + m).classList.add('active');
-    if (m === 'admin') {
-      initAudio();
-      refreshData(); // Recarrega dados ao entrar no admin
-    }
+    if (m === 'admin') initAudio();
   }
 
   function switchAdminTab(t) {
@@ -642,94 +619,75 @@
       return;
     }
 
-    // Desabilita botão e mostra loading
-    const btn = document.getElementById('btnSortear');
-    const loading = document.getElementById('loadingIndicator');
-    btn.disabled = true;
-    loading.style.display = 'block';
+    const checkinsNorm = sys.checkins.slice(0, 24).map(n => normalizeName(n));
+    const jogadores = [];
+    const naoEncontrados = [];
 
-    // Simula um pequeno delay para dar tempo de ver o loading (opcional)
-    setTimeout(() => {
-      try {
-        const checkinsNorm = sys.checkins.slice(0, 24).map(n => normalizeName(n));
-        const jogadores = [];
-        const naoEncontrados = [];
-
-        checkinsNorm.forEach(norm => {
-          const player = sys.players.find(p => p.normalizedName === norm);
-          if (player) {
-            jogadores.push({ ...player, forca: calcularForca(player) });
-          } else {
-            const original = sys.checkins.find(c => normalizeName(c) === norm);
-            naoEncontrados.push(original || norm);
-          }
-        });
-
-        if (naoEncontrados.length > 0) {
-          showTst("Jogadores não cadastrados: " + naoEncontrados.join(', '), true);
-          btn.disabled = false;
-          loading.style.display = 'none';
-          return;
-        }
-
-        jogadores.sort((a, b) => b.forca - a.forca);
-
-        let levantadores = jogadores.filter(j => j.isLevantador);
-        let mulheres = jogadores.filter(j => j.isMulher && !j.isLevantador);
-        let resto = jogadores.filter(j => !j.isLevantador && !j.isMulher);
-
-        const numTimes = Math.min(4, Math.ceil(jogadores.length / 6));
-        let times = Array.from({ length: numTimes }, () => []);
-
-        function precisaLevantador(time) { return !time.some(j => j.isLevantador); }
-        function precisaMulher(time) { return !time.some(j => j.isMulher); }
-
-        levantadores.forEach(lev => {
-          let candidatos = times.filter(t => precisaLevantador(t));
-          if (candidatos.length === 0) candidatos = times;
-          candidatos.sort((a, b) => sumForca(a) - sumForca(b));
-          candidatos[0].push(lev);
-        });
-
-        mulheres.forEach(mul => {
-          let candidatos = times.filter(t => precisaMulher(t));
-          if (candidatos.length === 0) candidatos = times;
-          candidatos.sort((a, b) => sumForca(a) - sumForca(b));
-          candidatos[0].push(mul);
-        });
-
-        let todosRestantes = [...resto, ...levantadores.filter(l => !times.some(t => t.includes(l))), ...mulheres.filter(m => !times.some(t => t.includes(m)))];
-
-        todosRestantes.sort((a, b) => b.forca - a.forca);
-        todosRestantes.forEach(j => {
-          let viaveis = times.filter(t => t.length < 6);
-          if (viaveis.length === 0) {
-            times.sort((a, b) => sumForca(a) - sumForca(b));
-            times[0].push(j);
-          } else {
-            viaveis.sort((a, b) => sumForca(a) - sumForca(b));
-            viaveis[0].push(j);
-          }
-        });
-
-        sys.currentTeams = times.filter(t => t.length > 0);
-        reiDaQuadra = {
-          emQuadra: [0, 1],
-          fila: sys.currentTeams.length > 2 ? Array.from({ length: sys.currentTeams.length - 2 }, (_, i) => i + 2) : [],
-          vitsVencedor: 0,
-          ultimoVencedor: null
-        };
-
-        renderArena(true);
-        fetchActionAsync('saveDraft', {times: sys.currentTeams});
-      } catch (error) {
-        console.error("Erro no sorteio:", error);
-        showTst("Erro ao gerar times: " + error.message, true);
-      } finally {
-        btn.disabled = false;
-        loading.style.display = 'none';
+    checkinsNorm.forEach(norm => {
+      const player = sys.players.find(p => p.normalizedName === norm);
+      if (player) {
+        jogadores.push({ ...player, forca: calcularForca(player) });
+      } else {
+        const original = sys.checkins.find(c => normalizeName(c) === norm);
+        naoEncontrados.push(original || norm);
       }
-    }, 100); // pequeno delay para UI
+    });
+
+    if (naoEncontrados.length > 0) {
+      showTst("Jogadores não cadastrados: " + naoEncontrados.join(', '), true);
+      return;
+    }
+
+    jogadores.sort((a, b) => b.forca - a.forca);
+
+    let levantadores = jogadores.filter(j => j.isLevantador);
+    let mulheres = jogadores.filter(j => j.isMulher && !j.isLevantador);
+    let resto = jogadores.filter(j => !j.isLevantador && !j.isMulher);
+
+    const numTimes = Math.min(4, Math.ceil(jogadores.length / 6));
+    let times = Array.from({ length: numTimes }, () => []);
+
+    function precisaLevantador(time) { return !time.some(j => j.isLevantador); }
+    function precisaMulher(time) { return !time.some(j => j.isMulher); }
+
+    levantadores.forEach(lev => {
+      let candidatos = times.filter(t => precisaLevantador(t));
+      if (candidatos.length === 0) candidatos = times;
+      candidatos.sort((a, b) => sumForca(a) - sumForca(b));
+      candidatos[0].push(lev);
+    });
+
+    mulheres.forEach(mul => {
+      let candidatos = times.filter(t => precisaMulher(t));
+      if (candidatos.length === 0) candidatos = times;
+      candidatos.sort((a, b) => sumForca(a) - sumForca(b));
+      candidatos[0].push(mul);
+    });
+
+    let todosRestantes = [...resto, ...levantadores.filter(l => !times.some(t => t.includes(l))), ...mulheres.filter(m => !times.some(t => t.includes(m)))];
+
+    todosRestantes.sort((a, b) => b.forca - a.forca);
+    todosRestantes.forEach(j => {
+      let viaveis = times.filter(t => t.length < 6);
+      if (viaveis.length === 0) {
+        times.sort((a, b) => sumForca(a) - sumForca(b));
+        times[0].push(j);
+      } else {
+        viaveis.sort((a, b) => sumForca(a) - sumForca(b));
+        viaveis[0].push(j);
+      }
+    });
+
+    sys.currentTeams = times.filter(t => t.length > 0);
+    reiDaQuadra = {
+      emQuadra: [0, 1],
+      fila: sys.currentTeams.length > 2 ? Array.from({ length: sys.currentTeams.length - 2 }, (_, i) => i + 2) : [],
+      vitsVencedor: 0,
+      ultimoVencedor: null
+    };
+
+    renderArena(true);
+    fetchActionAsync('saveDraft', {times: sys.currentTeams});
   }
 
   function sumForca(time) {
@@ -743,7 +701,7 @@
   function renderArena(playGacha = false) {
     document.getElementById('arena-view').style.display = 'block';
     let c = document.getElementById('resultado-container');
-    c.innerHTML = '';
+    c.innerHTML = ''; // Limpa os times anteriores para permitir novo sorteio
 
     let delayGlobal = 0;
 
@@ -967,7 +925,7 @@
       showTst("Configure a URL da API no início do script!", true);
       return;
     }
-    showTst("Sincronizando...");
+    showTst("Atualizando dados...");
     fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
       .then(r => r.json())
       .then(d => {
