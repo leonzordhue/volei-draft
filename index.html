@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <title>Vôlei Draft PRO 3.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -48,21 +47,19 @@
     .roster-list { max-height: 400px; overflow-y: auto; background: #2a2a2a; border-radius: 12px; padding: 10px; border: 1px solid #444; }
     .roster-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; font-size: 14px; cursor: pointer;}
     .roster-item-confirmado { background: #1a3d1a; }
-    .checkin-button { 
-      background: var(--success); 
-      color: white; 
-      border: none; 
-      border-radius: 8px; 
-      padding: 5px 10px; 
-      font-size: 12px; 
-      cursor: pointer; 
-      margin-left: 10px; 
-      width: auto; 
-      flex-shrink: 0;
-    }
+    .checkin-button { background: var(--success); color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; margin-left: 10px; width: auto; flex-shrink: 0; }
     
-    .arena-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-    @media (min-width: 1024px) { .arena-grid { grid-template-columns: repeat(2, 1fr); } }
+    /* Arena em grid 2x2 para desktop */
+    .arena-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    @media (min-width: 768px) {
+      .arena-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
 
     .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); margin-bottom: 15px;}
     .time-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 5px;}
@@ -92,6 +89,27 @@
     .edit-field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; }
     .edit-field input, .edit-field select { background: #333; border: 1px solid #555; }
     .checkbox-group { display: flex; justify-content: space-around; }
+
+    /* Switch para modo competitivo */
+    .competitive-switch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 15px 0;
+      padding: 10px;
+      background: #2a2a2a;
+      border-radius: 30px;
+    }
+    .competitive-switch label {
+      font-size: 14px;
+      color: #aaa;
+    }
+    .competitive-switch input {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -149,8 +167,17 @@
       <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
     </div>
     <div id="arena-view" style="display:none;">
+      <!-- Grade 2x2 automática via CSS -->
       <div class="arena-grid" id="resultado-container"></div>
-      <div style="display:flex; gap:10px; margin-top:15px;">
+
+      <!-- Checkbox para ativar/desativar modo competitivo -->
+      <div class="competitive-switch">
+        <label for="modoCompetitivo">🏆 Modo Competitivo (Rei da Quadra)</label>
+        <input type="checkbox" id="modoCompetitivo" checked>
+      </div>
+
+      <!-- Botões de vitória (visíveis apenas se modo competitivo ativo) -->
+      <div id="botoesVitoria" style="display:flex; gap:10px; margin-top:15px;">
          <button onclick="registrarVitoria('A')" class="btn-success">🏆 Venceu Esq.</button>
          <button onclick="registrarVitoria('B')" class="btn-success">🏆 Venceu Dir.</button>
       </div>
@@ -375,9 +402,9 @@
 
   function fazerCheckin(nome) {
     if (!nome) return;
-    console.log("Fazendo check-in de:", nome);
+    console.log(`Fazendo check-in de: ${nome}`);
     sys.checkins.push(nome);
-    console.log("Agora sys.checkins tem", sys.checkins.length, "itens:", sys.checkins);
+    console.log(`Agora sys.checkins tem ${sys.checkins.length} itens:`, sys.checkins);
     renderPublic();
     showTst("Confirmado!");
     fetchActionAsync('rsvp', {nome: nome});
@@ -588,7 +615,7 @@
   function iniciarSorteio() {
     console.log("Iniciando sorteio. Confirmados:", sys.checkins.length, sys.checkins);
     if (sys.checkins.length < 4) {
-      showTst("Erro: Mínimo de 4 confirmados! Atual: " + sys.checkins.length, true);
+      showTst("Erro: Mínimo de 4 confirmados!", true);
       return;
     }
 
@@ -682,9 +709,8 @@
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
     }
 
-    reiDaQuadra.emQuadra.forEach((tIdx) => {
-      if (tIdx === undefined || tIdx >= sys.currentTeams.length) return;
-      let t = sys.currentTeams[tIdx];
+    // Renderiza os times na ordem natural (0,1,2,3...)
+    sys.currentTeams.forEach((t, tIdx) => {
       let card = document.createElement('div');
       card.className = 'time-card';
 
@@ -723,7 +749,19 @@
     document.getElementById('filaEsperaContainer').innerHTML = atrasados.length > 0
       ? atrasados.map(n => `<div>⏳ ${n}</div>`).join('')
       : "Ninguém na fila.";
+
+    // Controla visibilidade dos botões de vitória conforme checkbox
+    atualizarVisibilidadeBotoes();
   }
+
+  function atualizarVisibilidadeBotoes() {
+    const modoCompetitivo = document.getElementById('modoCompetitivo').checked;
+    const botoes = document.getElementById('botoesVitoria');
+    botoes.style.display = modoCompetitivo ? 'flex' : 'none';
+  }
+
+  // Monitora mudanças no checkbox
+  document.getElementById('modoCompetitivo')?.addEventListener('change', atualizarVisibilidadeBotoes);
 
   let dragT = null, dragP = null;
   function dStart(e, t, p) { dragT = t; dragP = p; e.dataTransfer.setData('text/plain', ''); }
@@ -767,6 +805,9 @@
   }
 
   function registrarVitoria(lado) {
+    // Só executa se o modo competitivo estiver ativo
+    if (!document.getElementById('modoCompetitivo').checked) return;
+
     let vIdx = lado === 'A' ? 0 : 1;
     let pIdx = lado === 'A' ? 1 : 0;
     let v = reiDaQuadra.emQuadra[vIdx];
