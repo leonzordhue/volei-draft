@@ -36,7 +36,6 @@
     .btn-warning { background: #ff9800; color: #fff;}
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
     .btn-small { padding: 8px; font-size: 13px; }
-    .btn-refresh { background: #2196f3; }
 
     .autocomplete-container { position: relative; width: 100%; margin-bottom: 12px; }
     .autocomplete-list { position: absolute; z-index: 9999; background: #2a2a2a; width: 100%; max-height: 220px; overflow-y: auto; border: 1px solid #ff6b6b; border-radius: 8px; left: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -50,6 +49,7 @@
     .roster-item-confirmado { background: #1a3d1a; }
     .checkin-button { background: var(--success); color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; margin-left: 10px; width: auto; flex-shrink: 0; }
     
+    /* Arena em grid 2x2 para desktop */
     .arena-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -63,7 +63,6 @@
 
     .time-card { background: #222; padding: 15px; border-radius: 12px; border-top: 5px solid var(--primary); margin-bottom: 15px;}
     .time-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #444; padding-bottom: 5px;}
-    .radar-container { width: 100%; height: 180px; margin: 10px 0; }
     
     .drop-zone { min-height: 60px; padding-bottom: 10px;}
     .player-card { display: flex; justify-content: space-between; padding: 8px; margin-bottom: 5px; border-radius: 8px; border-left: 4px solid #555; background: #1a1a1a; font-size: 13px; cursor: grab; opacity: 0; animation: revealCard 0.4s forwards;}
@@ -90,6 +89,7 @@
     .edit-field input, .edit-field select { background: #333; border: 1px solid #555; }
     .checkbox-group { display: flex; justify-content: space-around; }
 
+    /* Switch para modo competitivo */
     .competitive-switch {
       display: flex;
       align-items: center;
@@ -108,6 +108,17 @@
       width: 20px;
       height: 20px;
       margin: 0;
+    }
+
+    /* Botões lado a lado */
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .button-row button {
+      flex: 1;
+      margin-bottom: 0;
     }
   </style>
 </head>
@@ -143,7 +154,6 @@
     <button onclick="switchAdminTab('draft')" class="btn-outline" id="tab-draft">2. Draft/Arena</button>
     <button onclick="switchAdminTab('match')" class="btn-outline" id="tab-match">3. Partidas</button>
     <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Banco</button>
-    <button onclick="refreshData()" class="btn-outline btn-refresh" style="color:white; background:#2196f3;">🔄 Atualizar Dados</button>
   </div>
 
   <!-- Aba Convocação -->
@@ -164,7 +174,10 @@
   <div id="admin-draft" class="view">
     <div class="section-card">
       <h2 class="section-title">Gerar Times (<span id="adminDraftCount">0</span>)</h2>
-      <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
+      <div class="button-row">
+        <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
+        <button onclick="refreshData()" class="btn-outline" style="border-color:var(--primary);">🔄 Atualizar Dados</button>
+      </div>
     </div>
     <div id="arena-view" style="display:none;">
       <!-- Grade 2x2 automática via CSS -->
@@ -605,7 +618,7 @@
     }
   }
 
-  // ==================== SORTEIO BALANCEADO ====================
+  // ==================== SORTEIO BALANCEADO COM ALEATORIEDADE ====================
   function calcularForca(jogador) {
     let totalJogos = (jogador.wins || 0) + (jogador.losses || 0);
     let winrate = totalJogos > 0 ? (jogador.wins / totalJogos) : 0.5;
@@ -626,7 +639,13 @@
     checkinsNorm.forEach(norm => {
       const player = sys.players.find(p => p.normalizedName === norm);
       if (player) {
-        jogadores.push({ ...player, forca: calcularForca(player) });
+        // Adiciona um fator aleatório à força para permitir sorteios diferentes
+        const forcaBase = calcularForca(player);
+        const fatorRandom = 0.9 + 0.2 * Math.random(); // entre 0.9 e 1.1
+        jogadores.push({ 
+          ...player, 
+          forca: forcaBase * fatorRandom 
+        });
       } else {
         const original = sys.checkins.find(c => normalizeName(c) === norm);
         naoEncontrados.push(original || norm);
@@ -638,6 +657,7 @@
       return;
     }
 
+    // Ordena pela força com ruído
     jogadores.sort((a, b) => b.forca - a.forca);
 
     let levantadores = jogadores.filter(j => j.isLevantador);
@@ -701,7 +721,7 @@
   function renderArena(playGacha = false) {
     document.getElementById('arena-view').style.display = 'block';
     let c = document.getElementById('resultado-container');
-    c.innerHTML = ''; // Limpa os times anteriores para permitir novo sorteio
+    c.innerHTML = '';
 
     let delayGlobal = 0;
 
@@ -715,7 +735,6 @@
       card.className = 'time-card';
 
       let htmlStr = `<div class="time-title">Time ${tIdx+1} <span>⭐${sumEstrelas(t)}</span></div>
-        <div class="radar-container"><canvas id="radar-${tIdx}"></canvas></div>
         <div class="drop-zone" ondragover="dOver(event)" ondrop="dDrop(event, ${tIdx}, null)">`;
 
       t.forEach((j, jIdx) => {
@@ -742,7 +761,6 @@
       htmlStr += `</div>`;
       card.innerHTML = htmlStr;
       c.appendChild(card);
-      setTimeout(() => drawRadar(`radar-${tIdx}`, t), 200);
     });
 
     let atrasados = sys.checkins.slice(24);
@@ -850,30 +868,6 @@
     sys.currentTeams[p].forEach(j => j.losses = (j.losses || 0) + 1);
   }
 
-  function drawRadar(id, t) {
-    let canvas = document.getElementById(id);
-    if (!canvas) return;
-    new Chart(canvas, {
-      type: 'radar',
-      data: {
-        labels: ['Ataque', 'Bloqueio', 'Passe'],
-        datasets: [{
-          data: [
-            t.filter(j => j.atacante).length * 20,
-            t.filter(j => j.bloqueador).length * 20,
-            t.filter(j => j.passador).length * 20
-          ],
-          backgroundColor: 'rgba(255,107,107,0.2)',
-          borderColor: '#ff6b6b'
-        }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: { r: { min: 0, max: 100, ticks: { display: false } } }
-      }
-    });
-  }
-
   function gerarGraficos() {
     let pres = {};
     sys.history.forEach(r => {
@@ -921,11 +915,11 @@
   }
 
   function refreshData() {
+    showTst("Atualizando dados...");
     if (!API_URL || API_URL === "COLE_SUA_URL_AQUI") {
       showTst("Configure a URL da API no início do script!", true);
       return;
     }
-    showTst("Atualizando dados...");
     fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
       .then(r => r.json())
       .then(d => {
