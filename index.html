@@ -36,6 +36,7 @@
     .btn-success { background: var(--success); } .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
     .btn-warning { background: #ff9800; color: #fff;}
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+    .btn-small { padding: 8px; font-size: 13px; }
 
     .autocomplete-container { position: relative; width: 100%; margin-bottom: 12px; }
     .autocomplete-list { position: absolute; z-index: 9999; background: #2a2a2a; width: 100%; max-height: 220px; overflow-y: auto; border: 1px solid #ff6b6b; border-radius: 8px; left: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -46,6 +47,8 @@
 
     .roster-list { max-height: 400px; overflow-y: auto; background: #2a2a2a; border-radius: 12px; padding: 10px; border: 1px solid #444; }
     .roster-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; font-size: 14px; cursor: pointer;}
+    .roster-item-confirmado { background: #1a3d1a; }
+    .checkin-button { background: var(--success); color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; margin-left: 10px; }
     
     .arena-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
     @media (min-width: 1024px) { .arena-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -67,19 +70,24 @@
     .admin-nav { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; }
     .admin-nav button { padding: 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; margin-bottom: 0; flex-shrink: 0;}
 
-    .zebra-box { font-size: 11px; font-weight: bold; padding: 4px; border-radius: 4px; background: #444; display: inline-block; margin-bottom: 10px;}
     #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 30px; display: none; z-index: 9999; font-weight: bold;}
     .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
     .modal-content { background: var(--card); padding: 20px; border-radius: 16px; width: 90%; max-width: 380px; text-align: center; border: 1px solid #444; }
     .stat-box { display: flex; justify-content: space-between; padding: 10px; background: #111; border-radius: 8px; margin-bottom: 5px; font-size: 14px; }
     .skill-icons { display: flex; justify-content: center; gap: 10px; margin: 10px 0; font-size: 20px; }
     .skill-icons span { background: #333; padding: 5px 10px; border-radius: 20px; font-size: 14px; }
+
+    /* Estilo para o modal de edição */
+    .edit-field { margin-bottom: 15px; text-align: left; }
+    .edit-field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; }
+    .edit-field input, .edit-field select { background: #333; border: 1px solid #555; }
+    .checkbox-group { display: flex; justify-content: space-around; }
   </style>
 </head>
 <body>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbxqurp3Hd6R-i4sHCpvuqL8F8bxR2qtACI3sgIpii64Jw1CbiuTbwL7UOjjiF5tWVon/exec"; // Substitua pela URL do seu Web App
+  const API_URL = "COLE_SUA_URL_AQUI"; // Substitua pela URL do seu Web App
 </script>
 <div id="toast">Sucesso!</div>
 <div class="header-logo"><img src="https://cdn-icons-png.flaticon.com/512/5402/5402396.png"><h1>Vôlei PRO 3.5</h1></div>
@@ -91,18 +99,17 @@
   </select>
 </div>
 
+<!-- MODO PÚBLICO -->
 <div id="view-public" class="view active">
   <div class="section-card">
-    <h2 class="section-title">Check-in do Dia</h2>
-    <select id="publicSelectRsvp"><option value="">Aguardando lista...</option></select>
-    <button onclick="fazerCheckin()" class="btn-success" id="btnConfirmarRsvp" disabled>✅ Confirmar Presença</button>
-    <div style="margin-top: 20px;">
-      <h3 style="font-size: 14px;">Confirmados (<span id="rsvpCount">0</span>)</h3>
-      <div class="roster-list" id="rsvpListPublic"></div>
-    </div>
+    <h2 class="section-title">Convocados do Dia</h2>
+    <div id="publicRosterList" class="roster-list" style="margin-bottom:20px;"></div>
+    <h3 style="font-size: 14px;">Confirmados (<span id="rsvpCount">0</span>)</h3>
+    <div class="roster-list" id="rsvpListPublic"></div>
   </div>
 </div>
 
+<!-- MODO ADMIN -->
 <div id="view-admin" class="view">
   <div class="admin-nav">
     <button onclick="switchAdminTab('roster')" class="btn-outline" style="background:var(--primary); color:white;" id="tab-roster">1. Convocação</button>
@@ -111,9 +118,10 @@
     <button onclick="switchAdminTab('cad')" class="btn-outline" id="tab-cad">4. Banco</button>
   </div>
 
+  <!-- Aba Convocação -->
   <div id="admin-roster" class="view active">
     <div class="section-card">
-      <h2 class="section-title">Montar Lista</h2>
+      <h2 class="section-title">Montar Lista (máx. 24)</h2>
       <div class="autocomplete-container">
         <input type="text" id="adminBuscaNome" placeholder="Digite para buscar..." autocomplete="off" onfocus="abrirDropdown()" oninput="filtrarDropdown()">
         <div id="customDropdown" class="autocomplete-list"></div>
@@ -124,6 +132,7 @@
     </div>
   </div>
 
+  <!-- Aba Draft -->
   <div id="admin-draft" class="view">
     <div class="section-card">
       <h2 class="section-title">Gerar Times (<span id="adminDraftCount">0</span>)</h2>
@@ -144,10 +153,12 @@
     </div>
   </div>
 
+  <!-- Aba Partidas -->
   <div id="admin-match" class="view">
     <div class="section-card"><h2 class="section-title">📊 Analytics Temporada</h2><canvas id="presChart"></canvas></div>
   </div>
 
+  <!-- Aba Banco -->
   <div id="admin-cad" class="view">
     <div class="section-card" style="border-color: #4CAF50;">
       <h2 class="section-title" style="color:#4CAF50;">➕ Novo Cadastro</h2>
@@ -170,17 +181,10 @@
   </div>
 </div>
 
+<!-- Modal de Visualização/Edição de Jogador -->
 <div class="modal-overlay" id="playerModal" onclick="closeModal(event)">
-  <div class="modal-content">
-    <h2 id="m-nome">Nome</h2>
-    <div id="m-stars" style="font-size:20px; margin-bottom:5px;"></div>
-    <div class="skill-icons" id="m-skills"></div>
-    <div class="stat-box">Recorde: <strong id="m-record">0V - 0D</strong></div>
-    <div class="stat-box">Win Rate: <strong id="m-wins">0%</strong></div>
-    <div class="stat-box">Faltas: <strong id="m-faltas" style="color:var(--danger)">0</strong></div>
-    <button class="btn-warning" onclick="registrarFalta()" style="margin-top:15px; width:100%;">📉 Registrar Falta</button>
-    <button class="btn-danger" onclick="excluirJogadorDoBanco()" style="margin-top:10px; width:100%;">🗑️ EXCLUIR DEFINITIVO</button>
-    <button class="btn-outline" onclick="document.getElementById('playerModal').style.display='none'" style="margin-top:10px; width:100%;">Fechar</button>
+  <div class="modal-content" id="modalContent" style="text-align:left;">
+    <!-- Conteúdo dinâmico preenchido por JS -->
   </div>
 </div>
 
@@ -308,6 +312,10 @@
   function selecionarNomeDropdown(nome) {
     document.getElementById('adminBuscaNome').value = '';
     document.getElementById('customDropdown').style.display = 'none';
+    if (tempAdminRoster.length >= 24) {
+      showTst("Limite máximo de 24 convocados atingido!", true);
+      return;
+    }
     if (!tempAdminRoster.includes(nome)) {
       tempAdminRoster.push(nome);
       renderAdminRoster();
@@ -333,31 +341,34 @@
   }
 
   function renderPublic() {
-    let pends = sys.roster.filter(n => !sys.checkins.includes(n));
-    let sel = document.getElementById('publicSelectRsvp');
-    let btn = document.getElementById('btnConfirmarRsvp');
-    sel.innerHTML = '<option value="">Selecione seu nome...</option>';
-    pends.forEach(n => sel.innerHTML += `<option value="${n}">${n}</option>`);
-    sel.disabled = pends.length === 0;
-    btn.disabled = pends.length === 0;
+    // Lista de convocados (roster) com botões de check-in
+    let htmlRoster = '';
+    sys.roster.forEach(n => {
+      const confirmado = sys.checkins.includes(n);
+      htmlRoster += `<div class="roster-item ${confirmado ? 'roster-item-confirmado' : ''}">
+        <span>${n}</span>
+        ${!confirmado ? `<button class="checkin-button" onclick="fazerCheckin('${n.replace(/'/g, "\\'")}')">✅</button>` : '<span style="color:green;">✓</span>'}
+      </div>`;
+    });
+    document.getElementById('publicRosterList').innerHTML = htmlRoster || 'Nenhum convocado ainda.';
 
-    let html = '';
+    // Lista de confirmados
+    let htmlConfirmados = '';
     sys.checkins.forEach((n, i) => {
       let j = findPlayerByName(n);
-      if (j) html += `<div class="roster-item" onclick="abrirCard('${j.nome.replace(/'/g, "\\'")}')"><span>${i+1}. ${j.nome}</span><span>${'⭐'.repeat(j.estrelas)}</span></div>`;
+      if (j) htmlConfirmados += `<div class="roster-item" onclick="abrirCard('${j.nome.replace(/'/g, "\\'")}')"><span>${i+1}. ${j.nome}</span><span>${'⭐'.repeat(j.estrelas)}</span></div>`;
     });
-    document.getElementById('rsvpListPublic').innerHTML = html || 'Ninguém ainda.';
+    document.getElementById('rsvpListPublic').innerHTML = htmlConfirmados || 'Ninguém ainda.';
     document.getElementById('rsvpCount').innerText = sys.checkins.length;
     document.getElementById('adminDraftCount').innerText = sys.checkins.length;
   }
 
-  function fazerCheckin() {
-    let n = document.getElementById('publicSelectRsvp').value;
-    if (!n) return;
-    sys.checkins.push(n);
+  function fazerCheckin(nome) {
+    if (!nome) return;
+    sys.checkins.push(nome);
     renderPublic();
     showTst("Confirmado!");
-    fetchActionAsync('rsvp', {nome: n});
+    fetchActionAsync('rsvp', {nome: nome});
   }
 
   function changeMode() {
@@ -386,6 +397,10 @@
   }
 
   function salvarListaOficial() {
+    if (tempAdminRoster.length > 24) {
+      showTst("Limite máximo de 24 convocados excedido!", true);
+      return;
+    }
     sys.roster = [...tempAdminRoster];
     renderPublic();
     showTst("Salvo na Nuvem!");
@@ -439,12 +454,123 @@
       });
   }
 
+  // ==================== MODAL DE VISUALIZAÇÃO/EDIÇÃO ====================
+  function abrirCard(nome) {
+    const jogador = sys.players.find(p => p.nome === nome);
+    if (!jogador) return;
+    playerSelecionadoModal = jogador;
+
+    const modal = document.getElementById('modalContent');
+    modal.innerHTML = `
+      <h2 style="text-align:center; margin-top:0;">${jogador.nome}</h2>
+      <div style="text-align:center; margin-bottom:15px;">${'⭐'.repeat(jogador.estrelas)}</div>
+      
+      <div class="edit-field">
+        <label>Nome</label>
+        <input type="text" id="editNome" value="${jogador.nome.replace(/"/g, '&quot;')}">
+      </div>
+      <div class="edit-field">
+        <label>Estrelas</label>
+        <select id="editEstrelas">
+          <option value="1" ${jogador.estrelas === 1 ? 'selected' : ''}>1 ⭐</option>
+          <option value="2" ${jogador.estrelas === 2 ? 'selected' : ''}>2 ⭐⭐</option>
+          <option value="3" ${jogador.estrelas === 3 ? 'selected' : ''}>3 ⭐⭐⭐</option>
+          <option value="4" ${jogador.estrelas === 4 ? 'selected' : ''}>4 ⭐⭐⭐⭐</option>
+        </select>
+      </div>
+      <div class="edit-field">
+        <label>Sexo</label>
+        <select id="editSexo">
+          <option value="M" ${!jogador.isMulher ? 'selected' : ''}>Masculino</option>
+          <option value="F" ${jogador.isMulher ? 'selected' : ''}>Feminino</option>
+        </select>
+      </div>
+      <div class="edit-field">
+        <label>Levantador</label>
+        <select id="editLevantador">
+          <option value="Não" ${!jogador.isLevantador ? 'selected' : ''}>Não</option>
+          <option value="Sim" ${jogador.isLevantador ? 'selected' : ''}>Sim</option>
+        </select>
+      </div>
+      <div class="edit-field">
+        <label>Habilidades</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="editAtacante" ${jogador.atacante ? 'checked' : ''}> Atacante</label>
+          <label><input type="checkbox" id="editBloqueador" ${jogador.bloqueador ? 'checked' : ''}> Bloqueador</label>
+          <label><input type="checkbox" id="editPassador" ${jogador.passador ? 'checked' : ''}> Passador</label>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button onclick="salvarEdicaoJogador()" class="btn-success" style="flex:2;">💾 Salvar</button>
+        <button onclick="excluirJogadorDoBanco()" class="btn-danger" style="flex:1;">🗑️</button>
+      </div>
+      <button onclick="fecharModal()" class="btn-outline" style="margin-top:10px;">Fechar</button>
+    `;
+    document.getElementById('playerModal').style.display = 'flex';
+  }
+
+  function fecharModal() {
+    document.getElementById('playerModal').style.display = 'none';
+  }
+
+  function salvarEdicaoJogador() {
+    if (!playerSelecionadoModal) return;
+    const novoNome = document.getElementById('editNome').value.trim().replace(/\s+/g, ' ');
+    if (!novoNome) { alert("Nome não pode ser vazio"); return; }
+    
+    const dadosAtualizados = {
+      nomeAntigo: playerSelecionadoModal.nome,
+      nome: novoNome,
+      estrelas: parseInt(document.getElementById('editEstrelas').value),
+      isMulher: document.getElementById('editSexo').value === 'F',
+      isLevantador: document.getElementById('editLevantador').value === 'Sim',
+      atacante: document.getElementById('editAtacante').checked,
+      bloqueador: document.getElementById('editBloqueador').checked,
+      passador: document.getElementById('editPassador').checked,
+      isConvidado: playerSelecionadoModal.isConvidado // mantém o mesmo tipo
+    };
+
+    // Atualiza localmente
+    playerSelecionadoModal.nome = dadosAtualizados.nome;
+    playerSelecionadoModal.estrelas = dadosAtualizados.estrelas;
+    playerSelecionadoModal.isMulher = dadosAtualizados.isMulher;
+    playerSelecionadoModal.isLevantador = dadosAtualizados.isLevantador;
+    playerSelecionadoModal.atacante = dadosAtualizados.atacante;
+    playerSelecionadoModal.bloqueador = dadosAtualizados.bloqueador;
+    playerSelecionadoModal.passador = dadosAtualizados.passador;
+    playerSelecionadoModal.normalizedName = normalizeName(novoNome);
+
+    renderAdminDB();
+    renderPublic(); // pois pode ter mudado nome na lista de convocados/checkin
+
+    fetchActionAsync('updatePlayer', dadosAtualizados);
+    showTst("Jogador atualizado!");
+    fecharModal();
+  }
+
+  function excluirJogadorDoBanco() {
+    if (confirm("Deletar jogador permanentemente?")) {
+      let n = playerSelecionadoModal.nome;
+      sys.players = sys.players.filter(p => p.nome !== n);
+      renderAdminDB();
+      renderPublic();
+      fetchActionAsync('deletePlayer', {nome: n});
+      fecharModal();
+      showTst("Deletado!");
+    }
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('playerModal')) {
+      fecharModal();
+    }
+  }
+
   // ==================== SORTEIO BALANCEADO ====================
   function calcularForca(jogador) {
-    // Força base = estrelas * 10 + (winrate normalizado) 
     let totalJogos = (jogador.wins || 0) + (jogador.losses || 0);
     let winrate = totalJogos > 0 ? (jogador.wins / totalJogos) : 0.5;
-    return jogador.estrelas * 10 + winrate * 5; // winrate contribui com até 5 pontos
+    return jogador.estrelas * 10 + winrate * 5;
   }
 
   function iniciarSorteio() {
@@ -472,32 +598,27 @@
       return;
     }
 
-    // Ordena por força descendente
     jogadores.sort((a, b) => b.forca - a.forca);
 
-    // Separa levantadores e mulheres
     let levantadores = jogadores.filter(j => j.isLevantador);
     let mulheres = jogadores.filter(j => j.isMulher && !j.isLevantador);
     let resto = jogadores.filter(j => !j.isLevantador && !j.isMulher);
 
-    // Determina número de times: ceil(jogadores.length / 6)
     const numTimes = Math.min(4, Math.ceil(jogadores.length / 6));
     let times = Array.from({ length: numTimes }, () => []);
 
-    // Função para verificar se um time precisa de levantador/mulher
     function precisaLevantador(time) { return !time.some(j => j.isLevantador); }
     function precisaMulher(time) { return !time.some(j => j.isMulher); }
 
-    // Distribui levantadores (um por time prioritariamente)
+    // Distribui levantadores
     levantadores.forEach(lev => {
-      // Encontra time com menor força total que ainda precisa de levantador
       let candidatos = times.filter(t => precisaLevantador(t));
-      if (candidatos.length === 0) candidatos = times; // todos já têm, coloca no mais fraco
+      if (candidatos.length === 0) candidatos = times;
       candidatos.sort((a, b) => sumForca(a) - sumForca(b));
       candidatos[0].push(lev);
     });
 
-    // Distribui mulheres (prioridade para times sem mulher)
+    // Distribui mulheres
     mulheres.forEach(mul => {
       let candidatos = times.filter(t => precisaMulher(t));
       if (candidatos.length === 0) candidatos = times;
@@ -505,16 +626,12 @@
       candidatos[0].push(mul);
     });
 
-    // Junta todos os restantes (incluindo levantadores/mulheres que sobraram)
     let todosRestantes = [...resto, ...levantadores.filter(l => !times.some(t => t.includes(l))), ...mulheres.filter(m => !times.some(t => t.includes(m)))];
 
-    // Distribui os restantes de forma balanceada, respeitando limite de 6
     todosRestantes.sort((a, b) => b.forca - a.forca);
     todosRestantes.forEach(j => {
-      // Times com menos de 6, ordenados por força total crescente
       let viaveis = times.filter(t => t.length < 6);
       if (viaveis.length === 0) {
-        // Isso não deve acontecer com até 24 jogadores, mas por segurança coloca no time mais fraco
         times.sort((a, b) => sumForca(a) - sumForca(b));
         times[0].push(j);
       } else {
@@ -523,10 +640,7 @@
       }
     });
 
-    // Remove times vazios
     sys.currentTeams = times.filter(t => t.length > 0);
-
-    // Configura rei da quadra (apenas dois primeiros times em quadra)
     reiDaQuadra = {
       emQuadra: [0, 1],
       fila: sys.currentTeams.length > 2 ? Array.from({ length: sys.currentTeams.length - 2 }, (_, i) => i + 2) : [],
@@ -670,7 +784,6 @@
 
     renderArena(false);
 
-    // Atualiza estatísticas dos jogadores
     let vencedores = sys.currentTeams[v].map(j => j.nome);
     let perdedores = sys.currentTeams[p].map(j => j.nome);
     fetchActionAsync('saveMatch', {
@@ -681,7 +794,6 @@
       perdedores: perdedores
     });
 
-    // Atualiza wins/losses localmente
     sys.currentTeams[v].forEach(j => j.wins = (j.wins || 0) + 1);
     sys.currentTeams[p].forEach(j => j.losses = (j.losses || 0) + 1);
   }
@@ -708,51 +820,6 @@
         scales: { r: { min: 0, max: 100, ticks: { display: false } } }
       }
     });
-  }
-
-  function abrirCard(n) {
-    playerSelecionadoModal = sys.players.find(p => p.nome === n);
-    if (!playerSelecionadoModal) return;
-    document.getElementById('m-nome').innerText = n;
-    document.getElementById('m-stars').innerText = '⭐'.repeat(playerSelecionadoModal.estrelas);
-    let skills = [];
-    if (playerSelecionadoModal.atacante) skills.push('🏐 Atacante');
-    if (playerSelecionadoModal.bloqueador) skills.push('🛑 Bloqueador');
-    if (playerSelecionadoModal.passador) skills.push('🤲 Passador');
-    document.getElementById('m-skills').innerHTML = skills.map(s => `<span>${s}</span>`).join('');
-    let wins = playerSelecionadoModal.wins || 0;
-    let losses = playerSelecionadoModal.losses || 0;
-    let total = wins + losses;
-    let wr = total > 0 ? Math.round((wins / total) * 100) : 0;
-    document.getElementById('m-record').innerText = `${wins}V - ${losses}D`;
-    document.getElementById('m-wins').innerText = wr + '%';
-    document.getElementById('m-faltas').innerText = sys.absences.filter(f => f[0] === n).length;
-    document.getElementById('playerModal').style.display = 'flex';
-  }
-
-  function registrarFalta() {
-    let n = playerSelecionadoModal.nome;
-    sys.absences.push([n]);
-    document.getElementById('m-faltas').innerText = sys.absences.filter(f => f[0] === n).length;
-    fetchActionAsync('registerAbsence', {nome: n});
-    showTst("Falta gravada.");
-  }
-
-  function excluirJogadorDoBanco() {
-    if (confirm("Deletar jogador permanentemente?")) {
-      let n = playerSelecionadoModal.nome;
-      sys.players = sys.players.filter(p => p.nome !== n);
-      renderAdminDB();
-      fetchActionAsync('deletePlayer', {nome: n});
-      document.getElementById('playerModal').style.display = 'none';
-      showTst("Deletado!");
-    }
-  }
-
-  function closeModal(e) {
-    if (e.target === document.getElementById('playerModal')) {
-      document.getElementById('playerModal').style.display = 'none';
-    }
   }
 
   function gerarGraficos() {
@@ -802,7 +869,7 @@
   }
 
   function refreshData() {
-    if (!API_URL || API_URL === "COLE_SUA_URL_AQUI") {
+    if (!API_URL || API_URL === "https://script.google.com/macros/s/AKfycbxqurp3Hd6R-i4sHCpvuqL8F8bxR2qtACI3sgIpii64Jw1CbiuTbwL7UOjjiF5tWVon/exec") {
       showTst("Configure a URL da API no início do script!", true);
       return;
     }
