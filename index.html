@@ -5,7 +5,6 @@
   <title>Vôlei Draft PRO 3.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -32,11 +31,14 @@
     
     input, select, button { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: none; font-size: 15px; }
     input, select { background: #2a2a2a; color: var(--text); border: 1px solid #444; }
-    button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
-    .btn-success { background: var(--success); } .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
+    button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-success { background: var(--success); } 
+    .btn-danger { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; margin:0;}
     .btn-warning { background: #ff9800; color: #fff;}
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
     .btn-small { padding: 8px; font-size: 13px; }
+    .btn-refresh { background: #3498db; margin-top: 10px; }
 
     .autocomplete-container { position: relative; width: 100%; margin-bottom: 12px; }
     .autocomplete-list { position: absolute; z-index: 9999; background: #2a2a2a; width: 100%; max-height: 220px; overflow-y: auto; border: 1px solid #ff6b6b; border-radius: 8px; left: 0; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -111,6 +113,18 @@
       height: 20px;
       margin: 0;
     }
+
+    /* Loading spinner */
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.1);
+      border-left-color: var(--primary);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -166,6 +180,11 @@
     <div class="section-card">
       <h2 class="section-title">Gerar Times (<span id="adminDraftCount">0</span>)</h2>
       <button id="btnSortear" onclick="iniciarSorteio()">🎰 Rodar Sorteio PRO</button>
+      <button onclick="refreshData()" class="btn-refresh btn-outline" style="margin-top:10px;">🔄 Atualizar Dados</button>
+      <div id="loadingIndicator" style="display:none; text-align:center;">
+        <div class="spinner"></div>
+        <p>Processando...</p>
+      </div>
     </div>
     <div id="arena-view" style="display:none;">
       <!-- Grade 2x2 automática via CSS -->
@@ -202,11 +221,7 @@
       <h2 class="section-title" style="color:#4CAF50;">➕ Novo Cadastro</h2>
       <input type="text" id="nomeCad" placeholder="Nome completo">
       <select id="estCad"><option value="1">1 Estrela</option><option value="2">2 Estrelas</option><option value="3" selected>3 Estrelas</option><option value="4">4 Estrelas</option></select>
-      <!-- ALTERAÇÃO: Sexo agora usa H (Homem) e M (Mulher) -->
-      <select id="sexoCad">
-        <option value="H">Homem</option>
-        <option value="M">Mulher</option>
-      </select>
+      <select id="sexoCad"><option value="M">Masculino</option><option value="F">Feminino</option></select>
       <select id="levCad"><option value="Nao">Normal</option><option value="Sim">Levantador</option></select>
       <div style="display:flex; gap:10px; margin-bottom:12px;">
         <label style="flex:1;"><input type="checkbox" id="atacanteCad"> Atacante</label>
@@ -423,7 +438,10 @@
     }
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + m).classList.add('active');
-    if (m === 'admin') initAudio();
+    if (m === 'admin') {
+      initAudio();
+      refreshData(); // Recarrega dados ao entrar no admin
+    }
   }
 
   function switchAdminTab(t) {
@@ -465,11 +483,10 @@
   function salvarNovoJogador() {
     let n = document.getElementById('nomeCad').value.trim().replace(/\s+/g, ' ');
     if (!n) return;
-    let sexoValue = document.getElementById('sexoCad').value; // 'H' ou 'M'
     let d = {
       nome: n,
       estrelas: parseInt(document.getElementById('estCad').value),
-      isMulher: sexoValue === 'M', // M = mulher, H = homem
+      isMulher: document.getElementById('sexoCad').value === 'F',
       isLevantador: document.getElementById('levCad').value === 'Sim',
       atacante: document.getElementById('atacanteCad').checked,
       bloqueador: document.getElementById('bloqueadorCad').checked,
@@ -526,8 +543,8 @@
       <div class="edit-field">
         <label>Sexo</label>
         <select id="editSexo">
-          <option value="H" ${!jogador.isMulher ? 'selected' : ''}>Homem</option>
-          <option value="M" ${jogador.isMulher ? 'selected' : ''}>Mulher</option>
+          <option value="M" ${!jogador.isMulher ? 'selected' : ''}>Masculino</option>
+          <option value="F" ${jogador.isMulher ? 'selected' : ''}>Feminino</option>
         </select>
       </div>
       <div class="edit-field">
@@ -567,7 +584,7 @@
       nomeAntigo: playerSelecionadoModal.nome,
       nome: novoNome,
       estrelas: parseInt(document.getElementById('editEstrelas').value),
-      isMulher: document.getElementById('editSexo').value === 'M', // M = mulher
+      isMulher: document.getElementById('editSexo').value === 'F',
       isLevantador: document.getElementById('editLevantador').value === 'Sim',
       atacante: document.getElementById('editAtacante').checked,
       bloqueador: document.getElementById('editBloqueador').checked,
@@ -625,75 +642,94 @@
       return;
     }
 
-    const checkinsNorm = sys.checkins.slice(0, 24).map(n => normalizeName(n));
-    const jogadores = [];
-    const naoEncontrados = [];
+    // Desabilita botão e mostra loading
+    const btn = document.getElementById('btnSortear');
+    const loading = document.getElementById('loadingIndicator');
+    btn.disabled = true;
+    loading.style.display = 'block';
 
-    checkinsNorm.forEach(norm => {
-      const player = sys.players.find(p => p.normalizedName === norm);
-      if (player) {
-        jogadores.push({ ...player, forca: calcularForca(player) });
-      } else {
-        const original = sys.checkins.find(c => normalizeName(c) === norm);
-        naoEncontrados.push(original || norm);
+    // Simula um pequeno delay para dar tempo de ver o loading (opcional)
+    setTimeout(() => {
+      try {
+        const checkinsNorm = sys.checkins.slice(0, 24).map(n => normalizeName(n));
+        const jogadores = [];
+        const naoEncontrados = [];
+
+        checkinsNorm.forEach(norm => {
+          const player = sys.players.find(p => p.normalizedName === norm);
+          if (player) {
+            jogadores.push({ ...player, forca: calcularForca(player) });
+          } else {
+            const original = sys.checkins.find(c => normalizeName(c) === norm);
+            naoEncontrados.push(original || norm);
+          }
+        });
+
+        if (naoEncontrados.length > 0) {
+          showTst("Jogadores não cadastrados: " + naoEncontrados.join(', '), true);
+          btn.disabled = false;
+          loading.style.display = 'none';
+          return;
+        }
+
+        jogadores.sort((a, b) => b.forca - a.forca);
+
+        let levantadores = jogadores.filter(j => j.isLevantador);
+        let mulheres = jogadores.filter(j => j.isMulher && !j.isLevantador);
+        let resto = jogadores.filter(j => !j.isLevantador && !j.isMulher);
+
+        const numTimes = Math.min(4, Math.ceil(jogadores.length / 6));
+        let times = Array.from({ length: numTimes }, () => []);
+
+        function precisaLevantador(time) { return !time.some(j => j.isLevantador); }
+        function precisaMulher(time) { return !time.some(j => j.isMulher); }
+
+        levantadores.forEach(lev => {
+          let candidatos = times.filter(t => precisaLevantador(t));
+          if (candidatos.length === 0) candidatos = times;
+          candidatos.sort((a, b) => sumForca(a) - sumForca(b));
+          candidatos[0].push(lev);
+        });
+
+        mulheres.forEach(mul => {
+          let candidatos = times.filter(t => precisaMulher(t));
+          if (candidatos.length === 0) candidatos = times;
+          candidatos.sort((a, b) => sumForca(a) - sumForca(b));
+          candidatos[0].push(mul);
+        });
+
+        let todosRestantes = [...resto, ...levantadores.filter(l => !times.some(t => t.includes(l))), ...mulheres.filter(m => !times.some(t => t.includes(m)))];
+
+        todosRestantes.sort((a, b) => b.forca - a.forca);
+        todosRestantes.forEach(j => {
+          let viaveis = times.filter(t => t.length < 6);
+          if (viaveis.length === 0) {
+            times.sort((a, b) => sumForca(a) - sumForca(b));
+            times[0].push(j);
+          } else {
+            viaveis.sort((a, b) => sumForca(a) - sumForca(b));
+            viaveis[0].push(j);
+          }
+        });
+
+        sys.currentTeams = times.filter(t => t.length > 0);
+        reiDaQuadra = {
+          emQuadra: [0, 1],
+          fila: sys.currentTeams.length > 2 ? Array.from({ length: sys.currentTeams.length - 2 }, (_, i) => i + 2) : [],
+          vitsVencedor: 0,
+          ultimoVencedor: null
+        };
+
+        renderArena(true);
+        fetchActionAsync('saveDraft', {times: sys.currentTeams});
+      } catch (error) {
+        console.error("Erro no sorteio:", error);
+        showTst("Erro ao gerar times: " + error.message, true);
+      } finally {
+        btn.disabled = false;
+        loading.style.display = 'none';
       }
-    });
-
-    if (naoEncontrados.length > 0) {
-      showTst("Jogadores não cadastrados: " + naoEncontrados.join(', '), true);
-      return;
-    }
-
-    jogadores.sort((a, b) => b.forca - a.forca);
-
-    let levantadores = jogadores.filter(j => j.isLevantador);
-    let mulheres = jogadores.filter(j => j.isMulher && !j.isLevantador);
-    let resto = jogadores.filter(j => !j.isLevantador && !j.isMulher);
-
-    const numTimes = Math.min(4, Math.ceil(jogadores.length / 6));
-    let times = Array.from({ length: numTimes }, () => []);
-
-    function precisaLevantador(time) { return !time.some(j => j.isLevantador); }
-    function precisaMulher(time) { return !time.some(j => j.isMulher); }
-
-    levantadores.forEach(lev => {
-      let candidatos = times.filter(t => precisaLevantador(t));
-      if (candidatos.length === 0) candidatos = times;
-      candidatos.sort((a, b) => sumForca(a) - sumForca(b));
-      candidatos[0].push(lev);
-    });
-
-    mulheres.forEach(mul => {
-      let candidatos = times.filter(t => precisaMulher(t));
-      if (candidatos.length === 0) candidatos = times;
-      candidatos.sort((a, b) => sumForca(a) - sumForca(b));
-      candidatos[0].push(mul);
-    });
-
-    let todosRestantes = [...resto, ...levantadores.filter(l => !times.some(t => t.includes(l))), ...mulheres.filter(m => !times.some(t => t.includes(m)))];
-
-    todosRestantes.sort((a, b) => b.forca - a.forca);
-    todosRestantes.forEach(j => {
-      let viaveis = times.filter(t => t.length < 6);
-      if (viaveis.length === 0) {
-        times.sort((a, b) => sumForca(a) - sumForca(b));
-        times[0].push(j);
-      } else {
-        viaveis.sort((a, b) => sumForca(a) - sumForca(b));
-        viaveis[0].push(j);
-      }
-    });
-
-    sys.currentTeams = times.filter(t => t.length > 0);
-    reiDaQuadra = {
-      emQuadra: [0, 1],
-      fila: sys.currentTeams.length > 2 ? Array.from({ length: sys.currentTeams.length - 2 }, (_, i) => i + 2) : [],
-      vitsVencedor: 0,
-      ultimoVencedor: null
-    };
-
-    renderArena(true);
-    fetchActionAsync('saveDraft', {times: sys.currentTeams});
+    }, 100); // pequeno delay para UI
   }
 
   function sumForca(time) {
@@ -931,6 +967,7 @@
       showTst("Configure a URL da API no início do script!", true);
       return;
     }
+    showTst("Sincronizando...");
     fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'sync'}) })
       .then(r => r.json())
       .then(d => {
@@ -943,6 +980,7 @@
           });
           tempAdminRoster = [...sys.roster];
           renderAll();
+          showTst("Dados atualizados!");
         } else {
           showTst("Erro ao sincronizar: " + (d.msg || 'desconhecido'), true);
         }
