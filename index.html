@@ -86,7 +86,7 @@
 <body>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbxqurp3Hd6R-i4sHCpvuqL8F8bxR2qtACI3sgIpii64Jw1CbiuTbwL7UOjjiF5tWVon/exec"; // Substitua pela URL do seu Web App (termina com /exec)
+  const API_URL = "https://script.google.com/macros/s/AKfycbxlEVeXT0kuuB_oXyGIb6lPIZhfsG6QYKF2XQOsA0LGLWjGbLrVtVZBoYQlAFNVOWCRqg/exec";
 </script>
 <div id="toast">Sucesso!</div>
 <div class="header-logo"><img src="https://cdn-icons-png.flaticon.com/512/5402/5402396.png"><h1>Vôlei PRO 3.5</h1></div>
@@ -844,7 +844,7 @@
 
   // ==================== COMUNICAÇÃO COM BACKEND ====================
   function fetchActionAsync(action, payload) {
-    if (!API_URL || API_URL === "https://script.google.com/macros/s/AKfycbxqurp3Hd6R-i4sHCpvuqL8F8bxR2qtACI3sgIpii64Jw1CbiuTbwL7UOjjiF5tWVon/exec") {
+    if (!API_URL || API_URL === "COLE_SUA_URL_AQUI") {
       showTst("Configure a API_URL no código!", true);
       return Promise.reject("URL não configurada");
     }
@@ -866,7 +866,7 @@
   }
 
   function refreshData() {
-    if (!API_URL || API_URL === "https://script.google.com/macros/s/AKfycbxqurp3Hd6R-i4sHCpvuqL8F8bxR2qtACI3sgIpii64Jw1CbiuTbwL7UOjjiF5tWVon/exec") {
+    if (!API_URL || API_URL === "COLE_SUA_URL_AQUI") {
       showTst("Configure a URL da API no início do script!", true);
       return;
     }
