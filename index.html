@@ -5,6 +5,7 @@
   <title>Vôlei Draft PRO 3.5</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5402/5402396.png">
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -201,7 +202,11 @@
       <h2 class="section-title" style="color:#4CAF50;">➕ Novo Cadastro</h2>
       <input type="text" id="nomeCad" placeholder="Nome completo">
       <select id="estCad"><option value="1">1 Estrela</option><option value="2">2 Estrelas</option><option value="3" selected>3 Estrelas</option><option value="4">4 Estrelas</option></select>
-      <select id="sexoCad"><option value="M">Masculino</option><option value="F">Feminino</option></select>
+      <!-- ALTERAÇÃO: Sexo agora usa H (Homem) e M (Mulher) -->
+      <select id="sexoCad">
+        <option value="H">Homem</option>
+        <option value="M">Mulher</option>
+      </select>
       <select id="levCad"><option value="Nao">Normal</option><option value="Sim">Levantador</option></select>
       <div style="display:flex; gap:10px; margin-bottom:12px;">
         <label style="flex:1;"><input type="checkbox" id="atacanteCad"> Atacante</label>
@@ -460,10 +465,11 @@
   function salvarNovoJogador() {
     let n = document.getElementById('nomeCad').value.trim().replace(/\s+/g, ' ');
     if (!n) return;
+    let sexoValue = document.getElementById('sexoCad').value; // 'H' ou 'M'
     let d = {
       nome: n,
       estrelas: parseInt(document.getElementById('estCad').value),
-      isMulher: document.getElementById('sexoCad').value === 'F',
+      isMulher: sexoValue === 'M', // M = mulher, H = homem
       isLevantador: document.getElementById('levCad').value === 'Sim',
       atacante: document.getElementById('atacanteCad').checked,
       bloqueador: document.getElementById('bloqueadorCad').checked,
@@ -520,8 +526,8 @@
       <div class="edit-field">
         <label>Sexo</label>
         <select id="editSexo">
-          <option value="M" ${!jogador.isMulher ? 'selected' : ''}>Masculino</option>
-          <option value="F" ${jogador.isMulher ? 'selected' : ''}>Feminino</option>
+          <option value="H" ${!jogador.isMulher ? 'selected' : ''}>Homem</option>
+          <option value="M" ${jogador.isMulher ? 'selected' : ''}>Mulher</option>
         </select>
       </div>
       <div class="edit-field">
@@ -561,7 +567,7 @@
       nomeAntigo: playerSelecionadoModal.nome,
       nome: novoNome,
       estrelas: parseInt(document.getElementById('editEstrelas').value),
-      isMulher: document.getElementById('editSexo').value === 'F',
+      isMulher: document.getElementById('editSexo').value === 'M', // M = mulher
       isLevantador: document.getElementById('editLevantador').value === 'Sim',
       atacante: document.getElementById('editAtacante').checked,
       bloqueador: document.getElementById('editBloqueador').checked,
